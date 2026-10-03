@@ -1,36 +1,7 @@
-# ============================================================================
-# 重要说明：本地环境 vs Docker 构建环境
-# ============================================================================
-
-# 关键问题：如果本地环境和 Docker 环境不一致，会导致构建失败！
-# 解决方案：
-# 1. 使用精确的 Node.js LTS 版本（node:24.18.0 而不是 node:24）
-# 2. 使用 .nvmrc 锁定本地 Node.js 版本
-# 3. 在 Docker 中生成 lock 文件（最佳实践）
-# 4. 定期检查版本是否一致
-#
-# 因此，Dockerfile 必须：
-# 1. 显式安装所有系统依赖（不能假设已存在）
-# 2. 显式配置所有环境变量（不能依赖本地环境）
-# 3. 使用精确的 Node.js 版本（确保与本地一致）
-# 4. 确保所有构建步骤在 Docker 环境中可重复执行
-# ============================================================================
-
-# 使用精确的 Node.js 版本，确保本地和 Docker 环境一致
-# 本地环境：v24.18.0（由仓库根目录 .nvmrc 文件指定）
-# Docker 环境：node:24.18.0（与本地版本保持一致）
-# 
-# 使用方式：
-# - 本地开发时：在项目目录运行 `nvm use` 切换到 Node.js 24.18.0
-# - Docker 构建时：使用 FROM node:24.18.0，确保版本一致
-# 
-# 注意：使用 node:24 会随时间漂移，不能替代精确版本和镜像 digest
-#
-# REGISTRY 默认指向 Harbor 缓存（CI 和内网构建均可用）；
-# 纯外网本地构建可传 --build-arg REGISTRY= 退回 DockerHub。
-ARG NODE_VERSION=24.18.0
-ARG REGISTRY=harbor.sunmoonai.com:30443/k8s-images
-ARG NODE_IMAGE=${REGISTRY}/node:${NODE_VERSION}-alpine@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc
+# Build and runtime images are supplied by the deployment image lock.
+# NODE_RUNTIME_IMAGE defaults to NODE_IMAGE for direct/legacy single-base builds.
+ARG NODE_IMAGE=node:24.21.0-trixie@sha256:98ad2493de85738f55c11fe22e8586caf1fd917b7a8075c57ab9c55116e06492
+ARG NODE_RUNTIME_IMAGE=${NODE_IMAGE}
 
 FROM ${NODE_IMAGE} AS build
 
@@ -72,13 +43,12 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
     BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL} \
     DEPLOYMENT_ID=${DEPLOYMENT_ID}
 
-# 使用 Alpine 构建，pnpm 会按 musl 平台安装 Next/SWC/sharp 的可选依赖。
-# 这里不安装编译工具，避免把 build-only 系统依赖引入镜像层。
+# Native optional dependencies follow the build image libc.
+# The supplied build and runtime images must use the same libc family.
 
-ARG NPM_CONFIG_REGISTRY=https://registry.npmmirror.com
+ARG NPM_CONFIG_REGISTRY=https://registry.npmjs.org
 ENV npm_config_registry=${NPM_CONFIG_REGISTRY} \
     COREPACK_NPM_REGISTRY=${NPM_CONFIG_REGISTRY} \
-    COREPACK_INTEGRITY_KEYS=0 \
     npm_config_fetch_retries=5 \
     npm_config_fetch_retry_maxtimeout=120000 \
     npm_config_fetch_timeout=600000
@@ -120,12 +90,17 @@ RUN pnpm prepare:standalone
 ENTRYPOINT ["node"]
 CMD [".next/standalone/server.js"]
 
-# 使用独立运行阶段，只带 Node Alpine 基础镜像和 Next standalone 产物。
+# Runtime contains only the selected Node base and Next standalone output.
 # 不要 FROM build，否则会把 pnpm store、node_modules、构建缓存和编译依赖一起带进最终镜像。
-FROM ${NODE_IMAGE} AS run-minimal
+FROM ${NODE_RUNTIME_IMAGE} AS run-minimal
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 --ingroup nodejs nextjs
+RUN if command -v groupadd >/dev/null 2>&1; then \
+      groupadd --system --gid 1001 nodejs && \
+      useradd --system --uid 1001 --gid nodejs --no-create-home nextjs; \
+    else \
+      addgroup --system --gid 1001 nodejs && \
+      adduser --system --uid 1001 --ingroup nodejs nextjs; \
+    fi
 
 # 构建代理只允许存在于 build 阶段，禁止固化到最终运行镜像。
 WORKDIR /app

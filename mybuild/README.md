@@ -46,3 +46,9 @@ docker build -f mybuild/Dockerfile -t tpl-admin-frontend:architecture-v2-dev .
 镜像只有在 typecheck、lint、i18n、unit/component、Next production build、
 配对 E2E、Docker smoke、KIND 严格 TLS 和前后端兼容/回滚矩阵全部通过后，
 才允许进入独立正式发布流程。本地脚本和开发测试通过不等于已完成正式发布。
+
+## 新体系构建（platform-kind-v1）
+
+新部署由并列k8s仓的 `infrastructure/applications` 原生入口从固定Git提交构建；本目录Dockerfile仍是构建配方，不复制进部署仓。NODE_IMAGE和NODE_RUNTIME_IMAGE由上游锁分别提供Node24.21.0 trixie构建镜像与trixie-slim运行镜像，两者均为glibc。不得混用musl构建产物和glibc运行镜像。签名校验开启，pnpm仍固定10.24.0并使用frozen lockfile，默认官方npm源。
+
+以上旧shell入口未接入新发布链，仍使用原Harbor布局；新体系使用Make/Ansible构建、skopeo发布。Dockerfile保留单基镜像参数的直接构建兼容性，不表示旧shell入口已升级验证。运行身份仍为nextjs:1001，运行镜像不带构建代理。
