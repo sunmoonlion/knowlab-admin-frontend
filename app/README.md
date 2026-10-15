@@ -4,7 +4,7 @@ SunmoonAI 的 Next.js Admin 通用模板。它与 FastAPI `tpl-backend` 组成�
 发布和验收单元，提供 App Router、public/authenticated 渲染边界、next-intl、
 Tailwind/shadcn UI、同源 `/api` 接入和 Node standalone 构建。
 
-本模板只承载跨业务通用能力，不包含 Info、Knowledge 或 Research 的领域页面和 DTO。
+本模板只承载跨业务通用能力，不包含 Knowfeed、Knowbase 或 Research 的领域页面和 DTO。
 旧 React Router SPA 保留在独立的 `tpl-admin-frontend-react` 仓库，仅作迁移参考。
 
 ## 本地开发
@@ -52,7 +52,7 @@ corepack pnpm test:e2e
   Web 的身份边界。
 - 本仓库的受控 fixture 只验证前端契约和渲染；真实 Casdoor、FastAPI、双 Pod、
   滚动升级和回滚资格由 P0-007E 集成门禁验收。
-- 迁移到 Info、Knowledge、Research 时必须完整继承通用能力，再叠加领域页面；
+- 迁移到 Knowfeed、Knowbase、Research 时必须完整继承通用能力，再叠加领域页面；
   不允许以“只复制安全壳”替代模板同步。
 
 ## 参考

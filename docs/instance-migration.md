@@ -1,6 +1,6 @@
 # 三实例 Admin 原地迁移规则
 
-P0-007E 接受后，Info、Knowledge、Research 必须按 `Knowfeed -> Knowbase -> Research`
+P0-007E 接受后，Knowfeed、Knowbase、Research 必须按 `Knowfeed -> Knowbase -> Research`
 串行原地替换现有 Admin 前端。每个实例完整继承模板能力后，再恢复本实例领域路由、
 DTO 与 API adapter。
 
