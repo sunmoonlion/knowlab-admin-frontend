@@ -115,6 +115,20 @@ export const requestDetailSchema = z
     ]),
     cases: z.array(z.record(z.string(), z.unknown())),
     // 这个用户的数据（只有元数据）：清单的 data_bindings 照这里写（数据 id + 版本 + sha256）
+    answered: z.array(
+      z
+        .object({
+          question_id: z.string().uuid(),
+          kind: z.enum(['tool_approval', 'question', 'ask_before']),
+          case_id: z.string(),
+          key: z.string().nullable(),
+          text: z.string(),
+          answer: z.record(z.string(), z.string()).nullable(),
+          answered_by: z.enum(['operator', 'user']).nullable(),
+          answered_at: z.string().nullable(),
+        })
+        .strict(),
+    ),
     datasets: z.array(
       z
         .object({
@@ -130,6 +144,37 @@ export const requestDetailSchema = z
     ),
   })
   .strict()
+
+// 测试中待人决定的问题（有人值守）：审批由我们答，投资判断转给用户（C-L1）
+const questionSchema = z
+  .object({
+    question_id: z.string().uuid(),
+    kind: z.enum(['tool_approval', 'question', 'ask_before']),
+    text: z.string().min(1).max(4000),
+    options: z.array(z.object({ id: z.string(), label: z.string() }).strict()),
+    allow_free_text: z.boolean(),
+    case_id: z.string(),
+    step_id: z.string().nullable(),
+    asked_at: z.string(),
+    title: z.string(),
+    version: z.string(),
+    revision: z.number().int(),
+    route: z.enum(['user']).nullable(),
+    owner_subject: z.string(),
+    draft_id: z.string().uuid(),
+    last_error: z.string().nullable(),
+  })
+  .strict()
+
+export const questionsSchema = z
+  .object({ contract_version: z.literal(1), questions: z.array(questionSchema) })
+  .strict()
+
+export const answeredSchema = z
+  .object({ contract_version: z.literal(1), question_id: z.string().uuid(), sent: z.boolean() })
+  .strict()
+
+export type Question = z.infer<typeof questionSchema>
 
 export const createdDraftSchema = z
   .object({ contract_version: z.literal(1), draft_id: z.string().uuid(), version: z.string() })

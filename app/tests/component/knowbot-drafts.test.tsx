@@ -7,7 +7,10 @@ import { KnowbotDrafts } from '@/components/knowbots/knowbot-drafts'
 import type { AdminDraft } from '@/contracts/knowbots'
 import { ApiClientError } from '@/lib/api/client'
 import {
+  answerQuestion,
   createDraft,
+  fetchQuestions,
+  questionToUser,
   draftAction,
   fetchDrafts,
   fetchRequestDetail,
@@ -18,6 +21,9 @@ import {
 import messages from '@/messages/zh-CN.json'
 
 vi.mock('@/lib/knowbots/client', () => ({
+  answerQuestion: vi.fn(),
+  fetchQuestions: vi.fn(),
+  questionToUser: vi.fn(),
   createDraft: vi.fn(),
   draftAction: vi.fn(),
   fetchDrafts: vi.fn(),
@@ -78,6 +84,9 @@ beforeEach(() => {
   ])
     vi.mocked(fn).mockReset()
   vi.mocked(fetchRequests).mockResolvedValue([])
+  vi.mocked(fetchQuestions).mockReset().mockResolvedValue([])
+  vi.mocked(answerQuestion).mockReset()
+  vi.mocked(questionToUser).mockReset()
 })
 
 describe('分身草稿', () => {
@@ -174,6 +183,7 @@ describe('分身草稿', () => {
       runtime: 'investment',
       idea: { kind: 'skill', skill: '# 我的方法' },
       cases: [{ case_id: 'c1' }],
+      answered: [],
       datasets: [
         {
           dataset_id: '3b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
@@ -200,6 +210,62 @@ describe('分身草稿', () => {
     fireEvent.click(screen.getByText('建草稿'))
     await waitFor(() =>
       expect(createDraft).toHaveBeenCalledWith(REQUEST, { schema: 'knowbot-manifest/v1' }, CSRF),
+    )
+  })
+
+  it('answers approvals and sends judgement questions to the user', async () => {
+    const base = {
+      options: [],
+      allow_free_text: true,
+      case_id: 'c1',
+      step_id: 's1',
+      asked_at: '2026-10-17T00:00:00Z',
+      title: '财务分析与预测',
+      version: '1',
+      revision: 1,
+      route: null,
+      owner_subject: 'user-123',
+      draft_id: DRAFT,
+      last_error: null,
+    }
+    vi.mocked(fetchDrafts).mockResolvedValue([])
+    vi.mocked(fetchQuestions).mockResolvedValue([
+      {
+        ...base,
+        question_id: '5b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+        kind: 'tool_approval',
+        text: '执行 python calc.py？',
+      },
+      {
+        ...base,
+        question_id: '6b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+        kind: 'question',
+        text: '毛利率按哪个口径？',
+      },
+      {
+        ...base,
+        question_id: '7b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+        kind: 'question',
+        text: '已转的',
+        route: 'user' as const,
+      },
+    ])
+    vi.mocked(answerQuestion).mockResolvedValue(true)
+    vi.mocked(questionToUser).mockResolvedValue(undefined)
+    renderPage()
+    expect(await screen.findByText('执行 python calc.py？')).toBeInTheDocument()
+    expect(screen.getByText('已转给用户，等用户回答。')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('批准'))
+    await waitFor(() =>
+      expect(answerQuestion).toHaveBeenCalledWith(
+        '5b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+        { decision: 'approve' },
+        CSRF,
+      ),
+    )
+    fireEvent.click(screen.getByText('转给用户'))
+    await waitFor(() =>
+      expect(questionToUser).toHaveBeenCalledWith('6b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10', CSRF),
     )
   })
 })

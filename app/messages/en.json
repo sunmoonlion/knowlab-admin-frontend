@@ -134,6 +134,29 @@
     "badJson": "This is not valid JSON.",
     "createDraft": "Create draft",
     "datasets": "The user's data (write data_bindings from these)",
-    "noDatasets": "This user has not uploaded any data."
+    "noDatasets": "This user has not uploaded any data.",
+    "questions": {
+      "title": "Questions to answer",
+      "intro": "The test stopped where a person has to decide and continues once answered. We answer approvals and how-to-run questions; investment judgements go to the user (C-L1) — when unsure, send it to the user.",
+      "failed": "That did not work ({code}).",
+      "kind": {
+        "tool_approval": "Approval",
+        "question": "Question",
+        "ask_before": "Before-step question"
+      },
+      "where": "case {case} · version {version}",
+      "withUser": "Sent to the user; waiting for their answer.",
+      "approve": "Approve",
+      "deny": "Deny",
+      "ownWords": "Answer in your own words",
+      "answer": "Answer",
+      "toUser": "Send to the user",
+      "judgementHint": "Anything that is an investment judgement (definitions, trade-offs, thresholds) goes to the user."
+    },
+    "answeredTitle": "Questions answered during tests (the user's go into the next draft's rule sources)",
+    "answeredBy": {
+      "operator": "answered by us",
+      "user": "answered by the user"
+    }
   }
 }

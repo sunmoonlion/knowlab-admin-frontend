@@ -134,6 +134,29 @@
     "badJson": "不是合法的 JSON。",
     "createDraft": "建草稿",
     "datasets": "用户的数据（清单的 data_bindings 照这里写）",
-    "noDatasets": "这个用户还没有上传数据。"
+    "noDatasets": "这个用户还没有上传数据。",
+    "questions": {
+      "title": "待回答的问题",
+      "intro": "测试跑到要人决定的地方停下了，答完接着跑。审批和跑法层面的由我们答；投资判断转给用户本人（C-L1），拿不准的一律转给用户。",
+      "failed": "没成功（{code}）。",
+      "kind": {
+        "tool_approval": "审批",
+        "question": "反问",
+        "ask_before": "开步前的提问"
+      },
+      "where": "用例 {case} · 第 {version} 版",
+      "withUser": "已转给用户，等用户回答。",
+      "approve": "批准",
+      "deny": "拒绝",
+      "ownWords": "自己写答案",
+      "answer": "回答",
+      "toUser": "转给用户",
+      "judgementHint": "涉及投资判断（口径、取舍、阈值之类）的，请转给用户。"
+    },
+    "answeredTitle": "测试中答过的问题（用户确认的写进下一版草稿的规则出处）",
+    "answeredBy": {
+      "operator": "我们答的",
+      "user": "用户答的"
+    }
   }
 }

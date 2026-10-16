@@ -22,6 +22,8 @@ import {
   startTest,
 } from '@/lib/knowbots/client'
 
+import { OpenQuestions } from './open-questions'
+
 const FIELD = 'mt-1 w-full rounded-md border px-3 py-2 text-sm'
 const KEY = ['admin', 'knowbots'] as const
 
@@ -53,6 +55,7 @@ export function KnowbotDrafts({ csrfToken }: { csrfToken: string }) {
           {failed}
         </p>
       ) : null}
+      <OpenQuestions csrfToken={csrfToken} />
       <section aria-label={t('draftsTitle')} className="space-y-3">
         <h2 className="font-medium">{t('draftsTitle')}</h2>
         <label className="block max-w-xs text-sm">
@@ -316,7 +319,7 @@ function RequestDetailPanel({
   })
   if (detail.isPending) return <p className="text-muted-foreground mt-2">{t('loading')}</p>
   if (detail.isError) return <p className="text-destructive mt-2">{t('loadFailed')}</p>
-  const { idea, cases, datasets } = detail.data
+  const { idea, cases, datasets, answered } = detail.data
   return (
     <div className="mt-3 space-y-3">
       <h4 className="font-medium">{t('method')}</h4>
@@ -347,6 +350,19 @@ function RequestDetailPanel({
           ))}
         </ul>
       )}
+      {answered.length > 0 ? (
+        <>
+          <h4 className="font-medium">{t('answeredTitle')}</h4>
+          <ul className="space-y-1">
+            {answered.map((a) => (
+              <li key={a.question_id}>
+                {a.text} → {a.answer?.text ?? a.answer?.option_id ?? a.answer?.decision} ·{' '}
+                {t(`answeredBy.${a.answered_by ?? 'operator'}`)}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
       <h4 className="font-medium">{t('cases')}</h4>
       <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs">
         {JSON.stringify(cases, null, 2)}

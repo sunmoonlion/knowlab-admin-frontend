@@ -3,7 +3,9 @@
 import type { z } from 'zod'
 
 import {
+  answeredSchema,
   createdDraftSchema,
+  questionsSchema,
   draftsSchema,
   requestDetailSchema,
   requestsSchema,
@@ -11,6 +13,7 @@ import {
   type AdminDraft,
   type AdminRequest,
   type DraftStatus,
+  type Question,
   type RequestDetail,
 } from '@/contracts/knowbots'
 import { requestJson } from '@/lib/api/client'
@@ -82,4 +85,32 @@ export async function draftAction(
   csrfToken: string,
 ): Promise<void> {
   await requestJson(draftPath(draftId, action), { method: 'POST', csrfToken })
+}
+
+const QUESTIONS = '/api/admin/v1/knowbot-questions'
+
+export async function fetchQuestions(): Promise<Question[]> {
+  return parse(questionsSchema, await requestJson(QUESTIONS)).questions
+}
+
+export type AnswerInput = { decision?: 'approve' | 'deny'; option_id?: string; text?: string }
+
+export async function answerQuestion(
+  questionId: string,
+  answer: AnswerInput,
+  csrfToken: string,
+): Promise<boolean> {
+  const done = await requestJson(`${QUESTIONS}/${encodeURIComponent(questionId)}/answer`, {
+    method: 'POST',
+    csrfToken,
+    body: answer,
+  })
+  return parse(answeredSchema, done).sent
+}
+
+export async function questionToUser(questionId: string, csrfToken: string): Promise<void> {
+  await requestJson(`${QUESTIONS}/${encodeURIComponent(questionId)}/to-user`, {
+    method: 'POST',
+    csrfToken,
+  })
 }
