@@ -58,5 +58,5 @@ corepack pnpm test:e2e
 ## 参考
 
 - Next.js App Router 与自托管文档：<https://nextjs.org/docs>
-- 当前架构与契约入口：`k8s/sunmoonai/docs/project-guide/`
+- 当前架构与契约入口：`k8s/docs/project-guide/`
 - 旧设计与迁移证据：按 `k8s/sunmoonai/docs/legacy-backlog/verification-index.md` 的固定 Git 版本查询，不作为当前实施基线。
