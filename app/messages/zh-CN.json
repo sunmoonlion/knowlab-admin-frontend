@@ -132,6 +132,8 @@
     },
     "manifest": "分身清单（knowbot-manifest/v1，JSON）",
     "badJson": "不是合法的 JSON。",
-    "createDraft": "建草稿"
+    "createDraft": "建草稿",
+    "datasets": "用户的数据（清单的 data_bindings 照这里写）",
+    "noDatasets": "这个用户还没有上传数据。"
   }
 }

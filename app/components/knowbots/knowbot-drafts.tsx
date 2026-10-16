@@ -316,7 +316,7 @@ function RequestDetailPanel({
   })
   if (detail.isPending) return <p className="text-muted-foreground mt-2">{t('loading')}</p>
   if (detail.isError) return <p className="text-destructive mt-2">{t('loadFailed')}</p>
-  const { idea, cases } = detail.data
+  const { idea, cases, datasets } = detail.data
   return (
     <div className="mt-3 space-y-3">
       <h4 className="font-medium">{t('method')}</h4>
@@ -333,6 +333,19 @@ function RequestDetailPanel({
             </div>
           ))}
         </dl>
+      )}
+      <h4 className="font-medium">{t('datasets')}</h4>
+      {datasets.length === 0 ? (
+        <p className="text-muted-foreground">{t('noDatasets')}</p>
+      ) : (
+        <ul className="space-y-1">
+          {datasets.map((d) => (
+            <li key={d.dataset_id} className="font-mono text-xs">
+              {d.name} ·{' '}
+              {JSON.stringify({ dataset_id: d.dataset_id, version: d.version, sha256: d.sha256 })}
+            </li>
+          ))}
+        </ul>
       )}
       <h4 className="font-medium">{t('cases')}</h4>
       <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs">

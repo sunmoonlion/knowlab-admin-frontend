@@ -114,6 +114,20 @@ export const requestDetailSchema = z
       z.object({ kind: z.literal('skill'), skill: z.string() }).strict(),
     ]),
     cases: z.array(z.record(z.string(), z.unknown())),
+    // 这个用户的数据（只有元数据）：清单的 data_bindings 照这里写（数据 id + 版本 + sha256）
+    datasets: z.array(
+      z
+        .object({
+          dataset_id: z.string().uuid(),
+          name: z.string(),
+          version: z.string(),
+          content_type: z.string(),
+          size_bytes: z.number().int(),
+          sha256: z.string().regex(/^[0-9a-f]{64}$/),
+          created_at: z.string().nullable(),
+        })
+        .strict(),
+    ),
   })
   .strict()
 

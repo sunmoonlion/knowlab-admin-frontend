@@ -132,6 +132,8 @@
     },
     "manifest": "Knowbot manifest (knowbot-manifest/v1, JSON)",
     "badJson": "This is not valid JSON.",
-    "createDraft": "Create draft"
+    "createDraft": "Create draft",
+    "datasets": "The user's data (write data_bindings from these)",
+    "noDatasets": "This user has not uploaded any data."
   }
 }

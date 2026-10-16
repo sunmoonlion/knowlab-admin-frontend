@@ -174,11 +174,23 @@ describe('分身草稿', () => {
       runtime: 'investment',
       idea: { kind: 'skill', skill: '# 我的方法' },
       cases: [{ case_id: 'c1' }],
+      datasets: [
+        {
+          dataset_id: '3b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+          name: '年报.pdf',
+          version: '1',
+          content_type: 'application/pdf',
+          size_bytes: 10,
+          sha256: 'a'.repeat(64),
+          created_at: null,
+        },
+      ],
     })
     vi.mocked(createDraft).mockResolvedValue({ contract_version: 1, draft_id: DRAFT, version: '1' })
     renderPage()
     fireEvent.click(await screen.findByText('看方法并建草稿'))
     expect(await screen.findByText('# 我的方法')).toBeInTheDocument()
+    expect(screen.getByText(/年报\.pdf · .*"dataset_id":"3b8a6c3e/)).toBeInTheDocument()
     const box = screen.getByLabelText('分身清单（knowbot-manifest/v1，JSON）')
     fireEvent.change(box, { target: { value: '{not json' } })
     fireEvent.click(screen.getByText('建草稿'))
