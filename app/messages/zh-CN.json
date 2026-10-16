@@ -60,7 +60,8 @@
     "expandMenu": "展开导航",
     "closeTab": "关闭{name}",
     "governance": "管理能力迁移中枢",
-    "governanceDescription": "P0-007E 将在此基础上逐项迁入菜单、权限、CRUD、审计和通用工具能力。"
+    "governanceDescription": "P0-007E 将在此基础上逐项迁入菜单、权限、CRUD、审计和通用工具能力。",
+    "knowbots": "分身草稿"
   },
   "settings": {
     "title": "界面设置",
@@ -74,5 +75,63 @@
     "density_compact": "紧凑",
     "language": "语言",
     "fullscreen": "切换全屏"
+  },
+  "knowbots": {
+    "title": "分身草稿",
+    "intro": "用户提交的想法在这里做成草稿、核对规则出处、发起测试；测试通过即交付 knowmart。方法只来自用户（C-L1），报告只看运行是否正确（C-L5）。",
+    "loading": "正在读取……",
+    "loadFailed": "读取失败，请刷新再试。",
+    "actionFailed": "操作没成功（{code}）。",
+    "draftsTitle": "草稿",
+    "requestsTitle": "用户的提交",
+    "filter": "按状态看",
+    "all": "全部",
+    "noDrafts": "没有这个状态的草稿。",
+    "noRequests": "还没有提交。",
+    "noDraftYet": "还没有草稿",
+    "status": {
+      "pending_test": "待测试",
+      "testing": "测试中",
+      "passed": "测试通过（待交付）",
+      "failed": "测试未通过",
+      "delivered": "已交付"
+    },
+    "draft": "第 {version} 版 · 第 {revision} 稿",
+    "meta": "用户 {owner} · 运行方 {runtime}",
+    "attempts": "已发起 {n} 次",
+    "ruleSources": "规则出处",
+    "reviewedBy": "已由 {who} 逐条核对",
+    "notReviewed": "还没核对出处",
+    "review": "已逐条核对出处",
+    "budget": "预算上限（元）",
+    "timeout": "超时（秒）",
+    "startTest": "发起测试",
+    "refresh": "刷新结果",
+    "reset": "超时退回",
+    "deliver": "重试交付",
+    "report": "测试报告",
+    "caseStatus": {
+      "passed": "通过",
+      "failed": "未通过",
+      "needs_human": "需要人来决定",
+      "error": "运行出错"
+    },
+    "expectationsMet": "期望满足 {met}/{total}",
+    "failedStep": "第 {step} 步没过：{checks}",
+    "open": "看方法并建草稿",
+    "hide": "收起",
+    "method": "用户的方法",
+    "cases": "验收用例",
+    "q": {
+      "solves": "它解决什么问题？",
+      "not_solves": "它不解决什么？",
+      "inputs": "输入是什么？",
+      "steps": "分几步做，每一步按什么规则判断？",
+      "outputs": "输出长什么样？",
+      "correctness": "怎样算做对了？"
+    },
+    "manifest": "分身清单（knowbot-manifest/v1，JSON）",
+    "badJson": "不是合法的 JSON。",
+    "createDraft": "建草稿"
   }
 }

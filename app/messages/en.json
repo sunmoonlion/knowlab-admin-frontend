@@ -60,7 +60,8 @@
     "expandMenu": "Expand navigation",
     "closeTab": "Close {name}",
     "governance": "Administration capability migration",
-    "governanceDescription": "P0-007E will add navigation, authorization, CRUD, audit and shared tooling on this foundation."
+    "governanceDescription": "P0-007E will add navigation, authorization, CRUD, audit and shared tooling on this foundation.",
+    "knowbots": "Knowbot drafts"
   },
   "settings": {
     "title": "Interface settings",
@@ -74,5 +75,63 @@
     "density_compact": "Compact",
     "language": "Language",
     "fullscreen": "Toggle fullscreen"
+  },
+  "knowbots": {
+    "title": "Knowbot drafts",
+    "intro": "Turn submitted ideas into drafts, check every rule source, and start tests here; a passing draft is delivered to knowmart. The method comes only from the user (C-L1); reports only cover whether it runs correctly (C-L5).",
+    "loading": "Loading…",
+    "loadFailed": "Could not load. Please refresh.",
+    "actionFailed": "The action failed ({code}).",
+    "draftsTitle": "Drafts",
+    "requestsTitle": "Submissions",
+    "filter": "Status",
+    "all": "All",
+    "noDrafts": "No drafts in this status.",
+    "noRequests": "No submissions yet.",
+    "noDraftYet": "No draft yet",
+    "status": {
+      "pending_test": "Waiting for test",
+      "testing": "Testing",
+      "passed": "Passed (to deliver)",
+      "failed": "Did not pass",
+      "delivered": "Delivered"
+    },
+    "draft": "Version {version} · draft {revision}",
+    "meta": "User {owner} · runtime {runtime}",
+    "attempts": "{n} attempts",
+    "ruleSources": "Rule sources",
+    "reviewedBy": "Checked one by one by {who}",
+    "notReviewed": "Rule sources not checked yet",
+    "review": "Rule sources checked",
+    "budget": "Budget limit (CNY)",
+    "timeout": "Timeout (seconds)",
+    "startTest": "Start test",
+    "refresh": "Refresh result",
+    "reset": "Return timed-out test",
+    "deliver": "Retry delivery",
+    "report": "Test report",
+    "caseStatus": {
+      "passed": "passed",
+      "failed": "failed",
+      "needs_human": "needs a person to decide",
+      "error": "run error"
+    },
+    "expectationsMet": "expectations met {met}/{total}",
+    "failedStep": "Step {step} failed: {checks}",
+    "open": "Read the method and create a draft",
+    "hide": "Hide",
+    "method": "The user's method",
+    "cases": "Acceptance cases",
+    "q": {
+      "solves": "What problem does it solve?",
+      "not_solves": "What does it not solve?",
+      "inputs": "What are the inputs?",
+      "steps": "What are the steps, and which rule decides each step?",
+      "outputs": "What does the output look like?",
+      "correctness": "How do you know it is right?"
+    },
+    "manifest": "Knowbot manifest (knowbot-manifest/v1, JSON)",
+    "badJson": "This is not valid JSON.",
+    "createDraft": "Create draft"
   }
 }

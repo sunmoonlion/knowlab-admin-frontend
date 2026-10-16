@@ -1,4 +1,5 @@
 import {
+  Bot,
   ChartNoAxesCombined,
   Gauge,
   Settings,
@@ -9,7 +10,7 @@ import {
 export type AdminNavigationItem = {
   key: string
   path: string
-  labelKey: 'dashboard' | 'reference' | 'richReference' | 'settings'
+  labelKey: 'dashboard' | 'knowbots' | 'reference' | 'richReference' | 'settings'
   icon: LucideIcon
   requiredRoles?: readonly string[]
   pinned?: boolean
@@ -22,6 +23,14 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
     labelKey: 'dashboard',
     icon: Gauge,
     pinned: true,
+  },
+  {
+    // 分身草稿（SDD 0027）：后端按管理端 scope 把关，这里只决定显不显示入口
+    key: 'knowbots',
+    path: '/knowbots',
+    labelKey: 'knowbots',
+    icon: Bot,
+    requiredRoles: ['admin', 'operator'],
   },
   {
     key: 'reference',
