@@ -24,7 +24,7 @@ export default defineConfig({
     ? undefined
     : [
         {
-          command: `uv run --project ../../tpl-backend/app --frozen python -m uvicorn --app-dir ../../tpl-backend/app scripts.pair_fixture:app --host 127.0.0.1 --port ${pairBackendPort}`,
+          command: `uv run --project ../../knowlab-backend/app --frozen python -m uvicorn --app-dir ../../knowlab-backend/app scripts.pair_fixture:app --host 127.0.0.1 --port ${pairBackendPort}`,
           url: `http://127.0.0.1:${pairBackendPort}/api/health`,
           reuseExistingServer,
           timeout: 30_000,
@@ -40,7 +40,7 @@ export default defineConfig({
           timeout: 60_000,
           env: {
             DEPLOYMENT_ENV: 'test',
-            AUTH_APP: 'tpl',
+            AUTH_APP: 'knowlab',
             APP_ORIGIN: baseURL,
             BACKEND_INTERNAL_URL: `http://127.0.0.1:${pairBackendPort}`,
             DEPLOYMENT_ID: 'arch-v2-r2-admin-e2e',

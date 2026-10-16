@@ -1,11 +1,11 @@
-# tpl-admin-frontend
+# knowlab-admin-frontend
 
-SunmoonAI 的 Next.js Admin 通用模板。它与 FastAPI `tpl-backend` 组成不可拆分的
+SunmoonAI 的 Next.js Admin 通用模板。它与 FastAPI `knowlab-backend` 组成不可拆分的
 发布和验收单元，提供 App Router、public/authenticated 渲染边界、next-intl、
 Tailwind/shadcn UI、同源 `/api` 接入和 Node standalone 构建。
 
 本模板只承载跨业务通用能力，不包含 Knowfeed、Knowbase 或 Research 的领域页面和 DTO。
-旧 React Router SPA 保留在独立的 `tpl-admin-frontend-react` 仓库，仅作迁移参考。
+旧 React Router SPA 保留在独立的 `knowlab-admin-frontend-react` 仓库，仅作迁移参考。
 
 ## 本地开发
 

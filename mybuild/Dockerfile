@@ -12,7 +12,7 @@ FROM ${NODE_IMAGE} AS build
 # 如果需要代理，可以通过 --build-arg 传递：
 #   docker build --build-arg HTTP_PROXY=http://proxy.example.com:8080 \
 #                --build-arg HTTPS_PROXY=http://proxy.example.com:8080 \
-#                -f mybuild/Dockerfile -t tpl-admin-frontend:1.0.0 .
+#                -f mybuild/Dockerfile -t knowlab-admin-frontend:1.0.0 .
 # ============================================================================
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -33,7 +33,7 @@ ENV HTTP_PROXY=${HTTP_PROXY} \
 
 # NEXT_PUBLIC_* 构建时静态嵌入 bundle，CI 通过 --build-arg 注入
 ARG NEXT_PUBLIC_API_URL=/api
-ARG NEXT_PUBLIC_APP_NAME=tpl
+ARG NEXT_PUBLIC_APP_NAME=knowlab
 ARG APP_ORIGIN=http://localhost:3000
 ARG BACKEND_INTERNAL_URL=http://127.0.0.1:8000
 ARG DEPLOYMENT_ID=local-build

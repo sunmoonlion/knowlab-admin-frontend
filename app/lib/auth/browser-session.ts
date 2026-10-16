@@ -15,7 +15,7 @@ type LoadBrowserSessionInput = {
   backendUrl: string
   cookieHeader: string
   correlationId: string
-  expectedApp: 'tpl' | 'knowfeed' | 'knowbase' | 'research'
+  expectedApp: 'knowlab' | 'knowfeed' | 'knowbase' | 'research'
   fetchImpl?: typeof fetch
 }
 

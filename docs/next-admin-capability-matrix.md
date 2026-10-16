@@ -4,10 +4,10 @@
 
 输入基线：
 
-- 已验收旧 React Router Admin：`tpl-admin-frontend-react@0b58adc4035d2b695646b0700dfc2fb707d14b57`
-- 新 Next Admin 首个边界提交：`tpl-admin-frontend@0be6690`
-- 验收实现提交：`tpl-admin-frontend@6d3b28f`
-- 配对后端：FastAPI `tpl-backend@69e634b`
+- 已验收旧 React Router Admin：`knowlab-admin-frontend-react@0b58adc4035d2b695646b0700dfc2fb707d14b57`
+- 新 Next Admin 首个边界提交：`knowlab-admin-frontend@0be6690`
+- 验收实现提交：`knowlab-admin-frontend@6d3b28f`
+- 配对后端：FastAPI `knowlab-backend@69e634b`
 
 本矩阵的“继承”是行为和契约等价，不是逐文件复制，也不是把 React Router SPA
 嵌入 Next。真实 FastAPI/Casdoor、Docker/KIND、滚动升级、回滚和 clean-room 已按

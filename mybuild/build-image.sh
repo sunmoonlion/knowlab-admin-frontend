@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Tpl App SSR 镜像构建脚本
+# Knowlab App SSR 镜像构建脚本
 # 用法: ./build-image.sh [--tag TAG]
 #   根据 build.conf 中的 PUSH_IMAGES_AFTER_BUILD 配置决定是否推送镜像
 
@@ -40,7 +40,7 @@ if [ -f "$BUILD_CONF" ]; then
     # shellcheck source=/dev/null
     source "$BUILD_CONF"
     source "$SCRIPT_DIR/release-tag.sh"
-    candidate_tag="${TPL_SSR_TAG:-architecture-v2-dev}"
+    candidate_tag="${KNOWLAB_SSR_TAG:-architecture-v2-dev}"
     if [[ "${1:-}" == "--tag" && -n "${2:-}" ]]; then candidate_tag="$2"; fi
     require_development_tag "$candidate_tag" || exit 1
     source "$SCRIPT_DIR/harbor-cluster.sh"
@@ -52,12 +52,12 @@ else
 fi
 
 # 镜像配置（从 build.conf 读取）
-TPL_SSR_IMAGE="${TPL_SSR_IMAGE:-tpl-admin-frontend}"
-TPL_SSR_TAG="${TPL_SSR_TAG:-architecture-v2-dev}"
+KNOWLAB_SSR_IMAGE="${KNOWLAB_SSR_IMAGE:-knowlab-admin-frontend}"
+KNOWLAB_SSR_TAG="${KNOWLAB_SSR_TAG:-architecture-v2-dev}"
 
 # 镜像仓库配置（从 build.conf 读取）
-TPL_SSR_IMAGE_REGISTRY="${TPL_SSR_IMAGE_REGISTRY:-harbor.sunmoonai.com}"
-TPL_SSR_IMAGE_PROJECT="${TPL_SSR_IMAGE_PROJECT:-app-images}"
+KNOWLAB_SSR_IMAGE_REGISTRY="${KNOWLAB_SSR_IMAGE_REGISTRY:-harbor.sunmoonai.com}"
+KNOWLAB_SSR_IMAGE_PROJECT="${KNOWLAB_SSR_IMAGE_PROJECT:-app-images}"
 
 # 构建选项
 DOCKERFILE="${DOCKERFILE:-Dockerfile}"
@@ -94,8 +94,8 @@ CUSTOM_TAG=""
 # 解析自定义标签
 if [[ "$1" == "--tag" && -n "$2" ]]; then
     CUSTOM_TAG="$2"
-    TPL_SSR_TAG="$CUSTOM_TAG"
-    log_info "使用自定义标签: $TPL_SSR_TAG"
+    KNOWLAB_SSR_TAG="$CUSTOM_TAG"
+    log_info "使用自定义标签: $KNOWLAB_SSR_TAG"
 fi
 
 # 镜像推送配置（从 build.conf 读取）
@@ -141,7 +141,7 @@ fi
 # 构建镜像
 build_image() {
     log_info "开始构建镜像..."
-    log_info "镜像名称: ${TPL_SSR_IMAGE}:${TPL_SSR_TAG}"
+    log_info "镜像名称: ${KNOWLAB_SSR_IMAGE}:${KNOWLAB_SSR_TAG}"
     log_info "Dockerfile: $SCRIPT_DIR/$DOCKERFILE"
     log_info "构建上下文: $PROJECT_ROOT (项目根目录)"
     
@@ -178,17 +178,17 @@ build_image() {
     fi
 
     $RUNTIME_CMD build "${build_network_args[@]}" "${build_proxy_args[@]}" -f "$SCRIPT_DIR/$DOCKERFILE" \
-        -t "${TPL_SSR_IMAGE}:${TPL_SSR_TAG}" \
+        -t "${KNOWLAB_SSR_IMAGE}:${KNOWLAB_SSR_TAG}" \
         --build-arg REGISTRY="${REGISTRY}" \
         --build-arg NODE_IMAGE="${REGISTRY}/node:24.18.0-alpine@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc" \
         --build-arg NPM_CONFIG_REGISTRY="${NPM_CONFIG_REGISTRY:-https://registry.npmmirror.com}" \
         .
     
     if [ $? -eq 0 ]; then
-        log_success "镜像构建完成: ${TPL_SSR_IMAGE}:${TPL_SSR_TAG}"
+        log_success "镜像构建完成: ${KNOWLAB_SSR_IMAGE}:${KNOWLAB_SSR_TAG}"
         echo ""
         log_info "镜像信息:"
-        $RUNTIME_CMD images "${TPL_SSR_IMAGE}:${TPL_SSR_TAG}"
+        $RUNTIME_CMD images "${KNOWLAB_SSR_IMAGE}:${KNOWLAB_SSR_TAG}"
         
         # 根据配置决定是否推送
         if [[ "${PUSH_IMAGES_AFTER_BUILD}" == "true" ]]; then
@@ -213,32 +213,32 @@ push_image() {
     
     # 构建完整镜像名称
     local push_registry
-    push_registry="$(resolve_harbor_registry_for_push "${TPL_SSR_IMAGE_REGISTRY:-harbor.sunmoonai.com}")"
-    TPL_SSR_FULL_IMAGE_NAME="${push_registry}/${TPL_SSR_IMAGE_PROJECT}/${TPL_SSR_IMAGE}:${TPL_SSR_TAG}"
+    push_registry="$(resolve_harbor_registry_for_push "${KNOWLAB_SSR_IMAGE_REGISTRY:-harbor.sunmoonai.com}")"
+    KNOWLAB_SSR_FULL_IMAGE_NAME="${push_registry}/${KNOWLAB_SSR_IMAGE_PROJECT}/${KNOWLAB_SSR_IMAGE}:${KNOWLAB_SSR_TAG}"
     
-    log_info "完整镜像名称: $TPL_SSR_FULL_IMAGE_NAME"
+    log_info "完整镜像名称: $KNOWLAB_SSR_FULL_IMAGE_NAME"
     
     # 检查本地镜像是否存在
-    if ! $RUNTIME_CMD images | grep -q "${TPL_SSR_IMAGE}.*${TPL_SSR_TAG}"; then
-        log_error "本地镜像不存在: ${TPL_SSR_IMAGE}:${TPL_SSR_TAG}"
+    if ! $RUNTIME_CMD images | grep -q "${KNOWLAB_SSR_IMAGE}.*${KNOWLAB_SSR_TAG}"; then
+        log_error "本地镜像不存在: ${KNOWLAB_SSR_IMAGE}:${KNOWLAB_SSR_TAG}"
         log_info "请先构建镜像: ./build-image.sh"
         exit 1
     fi
     
     # 标记镜像
-    $RUNTIME_CMD tag "${TPL_SSR_IMAGE}:${TPL_SSR_TAG}" "$TPL_SSR_FULL_IMAGE_NAME"
+    $RUNTIME_CMD tag "${KNOWLAB_SSR_IMAGE}:${KNOWLAB_SSR_TAG}" "$KNOWLAB_SSR_FULL_IMAGE_NAME"
     
     # 推送镜像
-    if push_image_with_harbor_verify "$RUNTIME_CMD" "$TPL_SSR_FULL_IMAGE_NAME"; then
-        log_success "✅ 镜像推送成功: $TPL_SSR_FULL_IMAGE_NAME"
+    if push_image_with_harbor_verify "$RUNTIME_CMD" "$KNOWLAB_SSR_FULL_IMAGE_NAME"; then
+        log_success "✅ 镜像推送成功: $KNOWLAB_SSR_FULL_IMAGE_NAME"
     else
-        log_error "❌ 镜像推送失败: $TPL_SSR_FULL_IMAGE_NAME"
+        log_error "❌ 镜像推送失败: $KNOWLAB_SSR_FULL_IMAGE_NAME"
         log_info "请检查："
         log_info "  1. 镜像仓库配置是否正确"
         if [[ "$RUNTIME_CMD" == "docker" ]]; then
-            log_info "  2. 是否已登录镜像仓库（docker login ${TPL_SSR_IMAGE_REGISTRY}）"
+            log_info "  2. 是否已登录镜像仓库（docker login ${KNOWLAB_SSR_IMAGE_REGISTRY}）"
         else
-            log_info "  2. 是否已登录镜像仓库（sudo nerdctl login ${TPL_SSR_IMAGE_REGISTRY}）"
+            log_info "  2. 是否已登录镜像仓库（sudo nerdctl login ${KNOWLAB_SSR_IMAGE_REGISTRY}）"
         fi
         log_info "  3. 网络连接是否正常"
         exit 1
@@ -247,7 +247,7 @@ push_image() {
 
 # 主函数
 main() {
-    log_info "Tpl App SSR 镜像构建脚本启动"
+    log_info "Knowlab App SSR 镜像构建脚本启动"
     log_info "推送配置: PUSH_IMAGES_AFTER_BUILD=${PUSH_IMAGES_AFTER_BUILD}"
     ensure_base_image "node:24.18.0-alpine"
     build_image

@@ -18,15 +18,15 @@ BUILD_CONF="${SCRIPT_DIR}/build.conf"
 if [ ! -f "$BUILD_CONF" ]; then log_error "build.conf 不存在"; exit 1; fi
 source "$BUILD_CONF"
 source "$SCRIPT_DIR/release-tag.sh"
-candidate_tag="${TPL_SSR_TAG:-architecture-v2-dev}"
+candidate_tag="${KNOWLAB_SSR_TAG:-architecture-v2-dev}"
 if [[ "${1:-}" == "--tag" && -n "${2:-}" ]]; then candidate_tag="$2"; fi
 require_development_tag "$candidate_tag" || exit 1
 source "$SCRIPT_DIR/harbor-cluster.sh"
 
-IMAGE_NAME="${TPL_SSR_IMAGE:-tpl-admin-frontend}"
-IMAGE_TAG="${TPL_SSR_TAG:-architecture-v2-dev}"
-IMAGE_REGISTRY="$(resolve_harbor_registry_for_push "${TPL_SSR_IMAGE_REGISTRY:-harbor.sunmoonai.com}")"
-IMAGE_PROJECT="${TPL_SSR_IMAGE_PROJECT:-app-images}"
+IMAGE_NAME="${KNOWLAB_SSR_IMAGE:-knowlab-admin-frontend}"
+IMAGE_TAG="${KNOWLAB_SSR_TAG:-architecture-v2-dev}"
+IMAGE_REGISTRY="$(resolve_harbor_registry_for_push "${KNOWLAB_SSR_IMAGE_REGISTRY:-harbor.sunmoonai.com}")"
+IMAGE_PROJECT="${KNOWLAB_SSR_IMAGE_PROJECT:-app-images}"
 
 CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-docker}"
 if [[ "$CONTAINER_RUNTIME" == "sudo nerdctl" || "$CONTAINER_RUNTIME" == "nerdctl" ]]; then

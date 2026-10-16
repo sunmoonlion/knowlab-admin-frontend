@@ -1,4 +1,4 @@
-# tpl-admin-frontend 镜像构建
+# knowlab-admin-frontend 镜像构建
 
 该目录构建 Next.js Admin standalone 镜像。源码在子模块根的 `app/`，
 构建上下文是子模块根；运行镜像使用 Dockerfile 锁定的 Node LTS 和 standalone 产物。
@@ -15,11 +15,11 @@ bash mybuild/test-release-tag.sh
 或直接构建（直接调用 Docker 时也必须遵守正式标签保护规则）：
 
 ```bash
-docker build -f mybuild/Dockerfile -t tpl-admin-frontend:architecture-v2-dev .
+docker build -f mybuild/Dockerfile -t knowlab-admin-frontend:architecture-v2-dev .
 ```
 
-`build.conf` 的 `TPL_SSR_IMAGE` / `TPL_SSR_TAG` 指定镜像和开发标签；
-`TPL_SSR_IMAGE_REGISTRY` / `TPL_SSR_IMAGE_PROJECT` 指定 Harbor 目标，默认项目
+`build.conf` 的 `KNOWLAB_SSR_IMAGE` / `KNOWLAB_SSR_TAG` 指定镜像和开发标签；
+`KNOWLAB_SSR_IMAGE_REGISTRY` / `KNOWLAB_SSR_IMAGE_PROJECT` 指定 Harbor 目标，默认项目
 `app-images`。变量名保留模板兼容，不表示运行时 App 身份。默认只构建；
 `PUSH_IMAGES_AFTER_BUILD=true` 会额外推送，须有相应授权。
 

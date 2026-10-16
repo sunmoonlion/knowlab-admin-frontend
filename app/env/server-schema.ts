@@ -16,7 +16,7 @@ const httpOrigin = z.url().refine((value) => {
 const serverEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DEPLOYMENT_ENV: z.enum(['development', 'test', 'production']).optional(),
-  AUTH_APP: z.enum(['tpl', 'knowfeed', 'knowbase', 'research']).optional(),
+  AUTH_APP: z.enum(['knowlab', 'knowfeed', 'knowbase', 'research']).optional(),
   APP_ORIGIN: httpOrigin.optional(),
   BACKEND_INTERNAL_URL: httpOrigin.optional(),
   DEPLOYMENT_ID: z.string().trim().min(1).optional(),
@@ -24,7 +24,7 @@ const serverEnvSchema = z.object({
 
 export type ServerEnv = z.infer<typeof serverEnvSchema> & {
   DEPLOYMENT_ENV: 'development' | 'test' | 'production'
-  AUTH_APP: 'tpl' | 'knowfeed' | 'knowbase' | 'research'
+  AUTH_APP: 'knowlab' | 'knowfeed' | 'knowbase' | 'research'
   APP_ORIGIN: string
   BACKEND_INTERNAL_URL: string
   DEPLOYMENT_ID: string
@@ -49,7 +49,7 @@ export function parseServerEnv(
     parsed.BACKEND_INTERNAL_URL ??
     (allowLocalDefaults ? 'http://127.0.0.1:8000' : undefined)
   const deploymentId = parsed.DEPLOYMENT_ID ?? (allowLocalDefaults ? 'local' : undefined)
-  const authApp = parsed.AUTH_APP ?? (allowLocalDefaults ? 'tpl' : undefined)
+  const authApp = parsed.AUTH_APP ?? (allowLocalDefaults ? 'knowlab' : undefined)
 
   if (!deploymentEnv || !appOrigin || !backendInternalUrl || !deploymentId || !authApp) {
     throw new Error(

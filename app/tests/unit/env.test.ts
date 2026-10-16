@@ -7,11 +7,11 @@ describe('client environment', () => {
   it('accepts the same-origin API contract', () => {
     expect(
       parseClientEnv({
-        NEXT_PUBLIC_APP_NAME: 'tpl',
+        NEXT_PUBLIC_APP_NAME: 'knowlab',
         NEXT_PUBLIC_API_URL: '/api',
       }),
     ).toEqual({
-      NEXT_PUBLIC_APP_NAME: 'tpl',
+      NEXT_PUBLIC_APP_NAME: 'knowlab',
       NEXT_PUBLIC_API_URL: '/api',
     })
   })
@@ -21,7 +21,7 @@ describe('client environment', () => {
     (value) => {
       expect(() =>
         parseClientEnv({
-          NEXT_PUBLIC_APP_NAME: 'tpl',
+          NEXT_PUBLIC_APP_NAME: 'knowlab',
           NEXT_PUBLIC_API_URL: value,
         }),
       ).toThrow()
@@ -34,7 +34,7 @@ describe('server environment', () => {
     expect(() =>
       parseServerEnv({
         NODE_ENV: 'production',
-        AUTH_APP: 'tpl',
+        AUTH_APP: 'knowlab',
       }),
     ).toThrow(/required at production runtime/)
   })
@@ -62,7 +62,7 @@ describe('server environment', () => {
       parseServerEnv({
         NODE_ENV: 'production',
         DEPLOYMENT_ENV: 'test',
-        AUTH_APP: 'tpl',
+        AUTH_APP: 'knowlab',
         APP_ORIGIN: 'http://127.0.0.1:3008',
         BACKEND_INTERNAL_URL: 'http://127.0.0.1:18080',
         DEPLOYMENT_ID: 'arch-v2-r2-admin-e2e',
@@ -78,7 +78,7 @@ describe('server environment', () => {
       parseServerEnv({
         NODE_ENV: 'production',
         DEPLOYMENT_ENV: 'test',
-        AUTH_APP: 'tpl',
+        AUTH_APP: 'knowlab',
         APP_ORIGIN: 'http://web.example.test',
         BACKEND_INTERNAL_URL: 'http://127.0.0.1:18080',
         DEPLOYMENT_ID: 'arch-v2-r2-admin-e2e',
@@ -91,34 +91,34 @@ describe('server environment', () => {
       parseServerEnv({
         NODE_ENV: 'production',
         DEPLOYMENT_ENV: 'production',
-        AUTH_APP: 'tpl',
-        APP_ORIGIN: 'https://tpl-admin.sunmoonai.com',
-        BACKEND_INTERNAL_URL: 'http://tpl-backend:8000',
+        AUTH_APP: 'knowlab',
+        APP_ORIGIN: 'https://knowlab-admin.sunmoonai.com',
+        BACKEND_INTERNAL_URL: 'http://knowlab-backend:8000',
         DEPLOYMENT_ID: 'release-42',
       }),
     ).toMatchObject({
-      APP_ORIGIN: 'https://tpl-admin.sunmoonai.com',
+      APP_ORIGIN: 'https://knowlab-admin.sunmoonai.com',
       DEPLOYMENT_ENV: 'production',
-      BACKEND_INTERNAL_URL: 'http://tpl-backend:8000',
+      BACKEND_INTERNAL_URL: 'http://knowlab-backend:8000',
       DEPLOYMENT_ID: 'release-42',
     })
   })
 
   it.each([
-    ['http application origin', { APP_ORIGIN: 'http://tpl-admin.sunmoonai.com' }],
+    ['http application origin', { APP_ORIGIN: 'http://knowlab-admin.sunmoonai.com' }],
     [
       'backend URL with credentials',
-      { BACKEND_INTERNAL_URL: 'http://user:password@tpl-backend:8000' },
+      { BACKEND_INTERNAL_URL: 'http://user:password@knowlab-backend:8000' },
     ],
-    ['backend URL with a path', { BACKEND_INTERNAL_URL: 'http://tpl-backend:8000/api' }],
+    ['backend URL with a path', { BACKEND_INTERNAL_URL: 'http://knowlab-backend:8000/api' }],
   ])('rejects unsafe production server routing: %s', (_label, override) => {
     expect(() =>
       parseServerEnv({
         NODE_ENV: 'production',
         DEPLOYMENT_ENV: 'production',
-        AUTH_APP: 'tpl',
-        APP_ORIGIN: 'https://tpl-admin.sunmoonai.com',
-        BACKEND_INTERNAL_URL: 'http://tpl-backend:8000',
+        AUTH_APP: 'knowlab',
+        APP_ORIGIN: 'https://knowlab-admin.sunmoonai.com',
+        BACKEND_INTERNAL_URL: 'http://knowlab-backend:8000',
         DEPLOYMENT_ID: 'release-42',
         ...override,
       }),

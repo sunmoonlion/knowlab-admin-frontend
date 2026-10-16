@@ -13,7 +13,7 @@ const sameOriginPath = z
   )
 
 export const clientEnvSchema = z.object({
-  NEXT_PUBLIC_APP_NAME: z.string().trim().min(1).default('tpl-admin'),
+  NEXT_PUBLIC_APP_NAME: z.string().trim().min(1).default('knowlab-admin'),
   NEXT_PUBLIC_API_URL: sameOriginPath.default('/api'),
 })
 
