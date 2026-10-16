@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import { leaveTo } from '@/lib/leave-to'
 
 type LogoutButtonProps = {
   csrfToken: string
@@ -32,6 +33,14 @@ export function LogoutButton({ csrfToken, locale, label, errorLabel }: LogoutBut
       })
       if (!response.ok) throw new Error('logout_failed')
       queryClient.clear()
+      // 200 带 logout_url：去身份提供方结束单点登录会话，它再跳回本应用（SDD 0027）；204 只做了本地退出
+      const body: unknown = response.status === 200 ? await response.json() : null
+      const logoutUrl =
+        body && typeof body === 'object' && 'logout_url' in body ? body.logout_url : null
+      if (typeof logoutUrl === 'string' && logoutUrl.startsWith('https://')) {
+        leaveTo(logoutUrl)
+        return
+      }
       router.replace(`/${locale}/login`)
       router.refresh()
     } catch {
