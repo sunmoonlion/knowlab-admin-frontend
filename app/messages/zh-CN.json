@@ -81,6 +81,7 @@
     "intro": "用户提交的想法在这里做成草稿、核对规则出处、发起测试；测试通过即交付 knowmart。方法只来自用户（C-L1），报告只看运行是否正确（C-L5）。",
     "loading": "正在读取……",
     "loadFailed": "读取失败，请刷新再试。",
+    "noPermission": "当前账号没有管理权限（要 admin 或 operator 角色）。请退出，用管理员账号登录。",
     "actionFailed": "操作没成功（{code}）。",
     "draftsTitle": "草稿",
     "requestsTitle": "用户的提交",

@@ -90,6 +90,20 @@ beforeEach(() => {
 })
 
 describe('分身草稿', () => {
+  it('没有管理权限时说清楚要换账号，不说「刷新再试」（账 134）', async () => {
+    const forbidden = new ApiClientError(403, {
+      code: 'forbidden',
+      message_key: 'errors.forbidden',
+      retryable: false,
+      correlation_id: 'c-1',
+    })
+    vi.mocked(fetchDrafts).mockRejectedValue(forbidden)
+    vi.mocked(fetchRequests).mockRejectedValue(forbidden)
+    renderPage()
+    expect(await screen.findAllByText(messages.knowbots.noPermission)).toHaveLength(2)
+    expect(screen.queryByText(messages.knowbots.loadFailed)).toBeNull()
+  })
+
   it('asks for the rule-source review before offering a test', async () => {
     vi.mocked(fetchDrafts).mockResolvedValueOnce([draft()])
     vi.mocked(fetchDrafts).mockResolvedValue([draft({ rules_reviewed_by: 'admin-1' })])

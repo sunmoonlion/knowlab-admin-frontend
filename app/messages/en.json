@@ -81,6 +81,7 @@
     "intro": "Turn submitted ideas into drafts, check every rule source, and start tests here; a passing draft is delivered to knowmart. The method comes only from the user (C-L1); reports only cover whether it runs correctly (C-L5).",
     "loading": "Loading…",
     "loadFailed": "Could not load. Please refresh.",
+    "noPermission": "This account has no admin rights (the admin or operator role is required). Sign out and sign in with an administrator account.",
     "actionFailed": "The action failed ({code}).",
     "draftsTitle": "Drafts",
     "requestsTitle": "Submissions",

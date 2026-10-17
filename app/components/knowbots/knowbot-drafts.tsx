@@ -33,6 +33,11 @@ function problem(error: unknown): string {
   return error instanceof ApiClientError ? error.problem.code : 'unexpected'
 }
 
+/** 读不出来时说为什么：没有管理权限（403）要换账号，别的才是「刷新再试」（账 134）。 */
+function loadFailed(error: unknown, t: Translate): string {
+  return error instanceof ApiClientError && error.status === 403 ? t('noPermission') : t('loadFailed')
+}
+
 // 分身草稿（SDD 0027）：我们的运营在这里看用户的提交与方法原文、建草稿、逐条核规则出处（C-L1）、
 // 发起测试（预算上限与超时）、刷新结果（通过即交付 knowmart）、重试交付、把超时的测试退回。
 export function KnowbotDrafts({ csrfToken }: { csrfToken: string }) {
@@ -76,7 +81,7 @@ export function KnowbotDrafts({ csrfToken }: { csrfToken: string }) {
         {drafts.isPending ? (
           <p className="text-muted-foreground text-sm">{t('loading')}</p>
         ) : drafts.isError ? (
-          <p className="text-destructive text-sm">{t('loadFailed')}</p>
+          <p className="text-destructive text-sm">{loadFailed(drafts.error, t)}</p>
         ) : drafts.data.length === 0 ? (
           <p className="text-muted-foreground text-sm">{t('noDrafts')}</p>
         ) : (
@@ -99,7 +104,7 @@ export function KnowbotDrafts({ csrfToken }: { csrfToken: string }) {
         {requests.isPending ? (
           <p className="text-muted-foreground text-sm">{t('loading')}</p>
         ) : requests.isError ? (
-          <p className="text-destructive text-sm">{t('loadFailed')}</p>
+          <p className="text-destructive text-sm">{loadFailed(requests.error, t)}</p>
         ) : requests.data.length === 0 ? (
           <p className="text-muted-foreground text-sm">{t('noRequests')}</p>
         ) : (
@@ -318,7 +323,7 @@ function RequestDetailPanel({
     onError,
   })
   if (detail.isPending) return <p className="text-muted-foreground mt-2">{t('loading')}</p>
-  if (detail.isError) return <p className="text-destructive mt-2">{t('loadFailed')}</p>
+  if (detail.isError) return <p className="text-destructive mt-2">{loadFailed(detail.error, t)}</p>
   const { idea, cases, datasets, answered } = detail.data
   return (
     <div className="mt-3 space-y-3">
