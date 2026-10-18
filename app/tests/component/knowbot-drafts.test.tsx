@@ -183,7 +183,14 @@ describe('分身草稿', () => {
             {
               case_id: 'c1',
               status: 'failed',
-              steps: [{ step_id: 's2', accepted: false, failed_checks: ['口径'] }],
+              steps: [
+                {
+                  step_id: 's2',
+                  accepted: false,
+                  failed_checks: ['口径'],
+                  details: ['口径: #0 d!data!营收@2024 says 150 but the data has 100'],
+                },
+              ],
               expectations: [false],
               note: null,
             },
@@ -195,6 +202,10 @@ describe('分身草稿', () => {
     const report = await screen.findByRole('list', { name: '测试报告' })
     expect(within(report).getByText(/期望满足 0\/1/)).toBeInTheDocument()
     expect(within(report).getByText('第 s2 步没过：口径')).toBeInTheDocument()
+    // 没过的为什么没过（审读第 3 条）
+    expect(
+      within(report).getByText('口径: #0 d!data!营收@2024 says 150 but the data has 100'),
+    ).toBeInTheDocument()
   })
 
   it('reads the method and creates a draft from a pasted manifest', async () => {

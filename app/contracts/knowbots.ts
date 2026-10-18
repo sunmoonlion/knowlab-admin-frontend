@@ -19,6 +19,8 @@ const caseResultSchema = z
             step_id: z.string().min(1).max(128),
             accepted: z.boolean(),
             failed_checks: z.array(z.string()).max(64),
+            // 没过的为什么没过，一条一句（审读第 3 条）；之前的报告没有
+            details: z.array(z.string().max(200)).max(64).optional(),
           })
           .strict(),
       )
