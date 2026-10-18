@@ -57,6 +57,20 @@ const ruleSourceSchema = z
   .object({ rule: z.string(), source: z.string(), ref: z.string() })
   .passthrough()
 
+// 测试中：跑着的那条用例走到哪了（待办账 135）；只有编号、计数、步名和钱
+const progressSchema = z
+  .object({
+    case_id: z.string().regex(CASE_ID),
+    cases_done: z.number().int().min(0),
+    cases_total: z.number().int().min(1),
+    step: z.number().int().min(0),
+    steps_total: z.number().int().min(0),
+    step_title: z.string().max(200),
+    attempt: z.number().int().min(0),
+    spent: z.string().max(32),
+  })
+  .strict()
+
 const adminDraftSchema = z
   .object({
     ...draftForUser,
@@ -71,6 +85,7 @@ const adminDraftSchema = z
     run_attempts: z.number().int().min(0),
     run_started_at: z.string().nullable(),
     last_error: z.string().nullable(),
+    progress: progressSchema.nullable().optional(),
   })
   .strict()
 
@@ -194,3 +209,4 @@ export type AdminDraft = z.infer<typeof adminDraftSchema>
 export type AdminRequest = z.infer<typeof adminRequestSchema>
 export type RequestDetail = z.infer<typeof requestDetailSchema>
 export type CaseResult = z.infer<typeof caseResultSchema>
+export type Progress = z.infer<typeof progressSchema>

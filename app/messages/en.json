@@ -197,7 +197,7 @@
     "startHint": "The budget is split evenly across cases; the timeout is shared by all cases of the run and excludes time spent waiting for answers.",
     "runningSince": "Started {at}, running for {minutes} minutes",
     "refreshedAt": "Last refreshed {at}",
-    "testingHint": "A case shows up in the result only when it has finished; while it runs the result is empty.",
+    "testingHint": "After a refresh the line above says which case and step it is on; a case shows up in the result below only when it has finished.",
     "spent": "Spent {amount} CNY",
     "finishedAt": "Finished {at}",
     "noCaseYet": "No case has finished yet.",
@@ -220,6 +220,9 @@
     "bindingsHint": "Write the manifest’s data_bindings like this:",
     "noAnswered": "No questions answered during tests yet.",
     "casesPassed": "{met}/{total} cases passed",
-    "showReport": "Show this draft’s result"
+    "showReport": "Show this draft’s result",
+    "progressNow": "Where it is",
+    "progressLine": "Running {case} (case {done}/{total}) · step {step}/{steps} {title} · try {attempt}",
+    "spentSoFar": "{amount} CNY spent so far"
   }
 }

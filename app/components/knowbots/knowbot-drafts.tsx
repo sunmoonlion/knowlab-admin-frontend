@@ -501,6 +501,23 @@ function DraftActions({
             : t('stage.testing')}
           {draft.run_attempts > 0 ? ` · ${t('attempts', { n: draft.run_attempts })}` : ''}
         </p>
+        {draft.progress ? (
+          <p className="font-medium" aria-label={t('progressNow')}>
+            {t('progressLine', {
+              case: draft.progress.case_id,
+              done: draft.progress.cases_done + 1,
+              total: draft.progress.cases_total,
+              step: draft.progress.step,
+              steps: draft.progress.steps_total,
+              title: draft.progress.step_title,
+              attempt: draft.progress.attempt,
+            })}
+            {' · '}
+            {t('spentSoFar', {
+              amount: format.number(Number(draft.progress.spent), { maximumFractionDigits: 2 }),
+            })}
+          </p>
+        ) : null}
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -610,7 +627,8 @@ function Report({ draft }: { draft: AdminDraft }) {
           {t('report')} · {t('draft', { version: draft.version, revision: draft.revision })}
         </h3>
         <p className="text-muted-foreground text-xs">
-          {report.cost
+          {/* 跑着的时候结果里的花费只算跑完的用例（常是 0），不显示；跑到哪、花了多少看上面的进度 */}
+          {report.cost && report.finished_at
             ? t('spent', {
                 amount: format.number(Number(report.cost.spent), { maximumFractionDigits: 2 }),
               })

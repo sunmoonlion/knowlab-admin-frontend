@@ -197,7 +197,7 @@
     "startHint": "预算按用例平分；超时是整次测试几条用例共用的，等人回答的时间不算。",
     "runningSince": "开跑于 {at}，已跑 {minutes} 分钟",
     "refreshedAt": "上次刷新 {at}",
-    "testingHint": "一条用例跑完，下面的结果里才出现一行；跑着的时候结果是空的。",
+    "testingHint": "刷新后上面会写跑到第几条、第几步；一条用例跑完，下面的结果里才出现一行。",
     "spent": "花费 {amount} 元",
     "finishedAt": "结束于 {at}",
     "noCaseYet": "还没有跑完的用例。",
@@ -220,6 +220,9 @@
     "bindingsHint": "清单的 data_bindings 照这里写：",
     "noAnswered": "测试中还没有答过的问题。",
     "casesPassed": "用例通过 {met}/{total}",
-    "showReport": "看这一稿的结果"
+    "showReport": "看这一稿的结果",
+    "progressNow": "跑到哪了",
+    "progressLine": "正在跑 {case}（第 {done}/{total} 条）· 第 {step}/{steps} 步 {title} · 这一步第 {attempt} 次",
+    "spentSoFar": "到现在花了 {amount} 元"
   }
 }

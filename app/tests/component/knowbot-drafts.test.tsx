@@ -410,11 +410,34 @@ describe('专家草稿', () => {
         rules_reviewed_by: 'admin-1',
         run_attempts: 1,
         run_started_at: new Date(Date.now() - 5 * 60_000).toISOString(),
+        report: {
+          status: 'running',
+          cases: [],
+          cost: { spent: '0.000000', currency: 'CNY' },
+          finished_at: null,
+        },
+        progress: {
+          case_id: 'c1',
+          cases_done: 0,
+          cases_total: 3,
+          step: 3,
+          steps_total: 8,
+          step_title: '勾稽',
+          attempt: 2,
+          spent: '12.4031',
+        },
       }),
     ])
     vi.mocked(draftAction).mockResolvedValue(undefined)
     renderPage()
     expect(await screen.findByText(/已跑 5 分钟/)).toBeInTheDocument()
+    // 跑到哪、到现在花了多少（待办账 135）；结果里只算跑完用例的「花费 0 元」不显示
+    expect(
+      screen.getByText(
+        '正在跑 c1（第 1/3 条）· 第 3/8 步 勾稽 · 这一步第 2 次 · 到现在花了 12.4 元',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/^花费/)).toBeNull()
     expect(screen.getByText(messages.knowbots.testingHint)).toBeInTheDocument()
     fireEvent.click(screen.getByText('刷新结果'))
     expect(await screen.findByText(/上次刷新/)).toBeInTheDocument()
