@@ -92,7 +92,7 @@ beforeEach(() => {
   vi.mocked(questionTake).mockReset()
 })
 
-describe('分身草稿', () => {
+describe('专家草稿', () => {
   it('没有管理权限时说清楚要换账号，不说「刷新再试」（账 134）', async () => {
     const forbidden = new ApiClientError(403, {
       code: 'forbidden',
@@ -246,7 +246,7 @@ describe('分身草稿', () => {
     fireEvent.click(await screen.findByText('看方法并建草稿'))
     expect(await screen.findByText('# 我的方法')).toBeInTheDocument()
     expect(screen.getByText(/年报\.pdf · .*"dataset_id":"3b8a6c3e/)).toBeInTheDocument()
-    const box = screen.getByLabelText('分身清单（knowbot-manifest/v1，JSON）')
+    const box = screen.getByLabelText('专家清单（knowbot-manifest/v1，JSON）')
     fireEvent.change(box, { target: { value: '{not json' } })
     fireEvent.click(screen.getByText('建草稿'))
     expect(await screen.findByRole('alert')).toHaveTextContent('不是合法的 JSON')

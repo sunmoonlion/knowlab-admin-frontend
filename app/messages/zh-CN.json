@@ -61,7 +61,7 @@
     "closeTab": "关闭{name}",
     "governance": "管理能力迁移中枢",
     "governanceDescription": "P0-007E 将在此基础上逐项迁入菜单、权限、CRUD、审计和通用工具能力。",
-    "knowbots": "分身草稿"
+    "knowbots": "专家草稿"
   },
   "settings": {
     "title": "界面设置",
@@ -77,7 +77,7 @@
     "fullscreen": "切换全屏"
   },
   "knowbots": {
-    "title": "分身草稿",
+    "title": "专家草稿",
     "intro": "用户提交的想法在这里做成草稿、核对规则出处、发起测试；测试通过即交付 knowmart。方法只来自用户（C-L1），报告只看运行是否正确（C-L5）。",
     "loading": "正在读取……",
     "loadFailed": "读取失败，请刷新再试。",
@@ -131,7 +131,7 @@
       "outputs": "输出长什么样？",
       "correctness": "怎样算做对了？"
     },
-    "manifest": "分身清单（knowbot-manifest/v1，JSON）",
+    "manifest": "专家清单（knowbot-manifest/v1，JSON）",
     "badJson": "不是合法的 JSON。",
     "createDraft": "建草稿",
     "datasets": "用户的数据（清单的 data_bindings 照这里写）",

@@ -61,7 +61,7 @@
     "closeTab": "Close {name}",
     "governance": "Administration capability migration",
     "governanceDescription": "P0-007E will add navigation, authorization, CRUD, audit and shared tooling on this foundation.",
-    "knowbots": "Knowbot drafts"
+    "knowbots": "Expert drafts"
   },
   "settings": {
     "title": "Interface settings",
@@ -77,7 +77,7 @@
     "fullscreen": "Toggle fullscreen"
   },
   "knowbots": {
-    "title": "Knowbot drafts",
+    "title": "Expert drafts",
     "intro": "Turn submitted ideas into drafts, check every rule source, and start tests here; a passing draft is delivered to knowmart. The method comes only from the user (C-L1); reports only cover whether it runs correctly (C-L5).",
     "loading": "Loading…",
     "loadFailed": "Could not load. Please refresh.",
@@ -131,7 +131,7 @@
       "outputs": "What does the output look like?",
       "correctness": "How do you know it is right?"
     },
-    "manifest": "Knowbot manifest (knowbot-manifest/v1, JSON)",
+    "manifest": "Expert manifest (knowbot-manifest/v1, JSON)",
     "badJson": "This is not valid JSON.",
     "createDraft": "Create draft",
     "datasets": "The user's data (write data_bindings from these)",
