@@ -10,6 +10,7 @@ import {
   answerQuestion,
   createDraft,
   fetchQuestions,
+  questionTake,
   questionToUser,
   draftAction,
   fetchDrafts,
@@ -23,6 +24,7 @@ import messages from '@/messages/zh-CN.json'
 vi.mock('@/lib/knowbots/client', () => ({
   answerQuestion: vi.fn(),
   fetchQuestions: vi.fn(),
+  questionTake: vi.fn(),
   questionToUser: vi.fn(),
   createDraft: vi.fn(),
   draftAction: vi.fn(),
@@ -87,6 +89,7 @@ beforeEach(() => {
   vi.mocked(fetchQuestions).mockReset().mockResolvedValue([])
   vi.mocked(answerQuestion).mockReset()
   vi.mocked(questionToUser).mockReset()
+  vi.mocked(questionTake).mockReset()
 })
 
 describe('分身草稿', () => {
@@ -148,6 +151,23 @@ describe('分身草稿', () => {
     expect(draftAction).toHaveBeenCalledWith(DRAFT, 'reset', CSRF)
     fireEvent.click(screen.getByText('刷新结果'))
     await waitFor(() => expect(draftAction).toHaveBeenCalledWith(DRAFT, 'refresh', CSRF))
+  })
+
+  it('tells an operator that returning a test is for admins only', async () => {
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({ status: 'testing', rules_reviewed_by: 'admin-1', run_attempts: 1 }),
+    ])
+    vi.mocked(draftAction).mockRejectedValueOnce(
+      new ApiClientError(403, {
+        code: 'forbidden',
+        message_key: 'errors.forbidden',
+        retryable: false,
+        correlation_id: 'c',
+      }),
+    )
+    renderPage()
+    fireEvent.click(await screen.findByText('超时退回'))
+    expect(await screen.findByRole('alert')).toHaveTextContent(messages.knowbots.adminOnly)
   })
 
   it('shows the report of a failed draft', async () => {
@@ -227,7 +247,7 @@ describe('分身草稿', () => {
     )
   })
 
-  it('answers approvals and sends judgement questions to the user', async () => {
+  it('answers approvals; judgements wait for the user unless we take one with a reason', async () => {
     const base = {
       options: [],
       allow_free_text: true,
@@ -238,6 +258,7 @@ describe('分身草稿', () => {
       version: '1',
       revision: 1,
       route: null,
+      route_reason: null,
       owner_subject: 'user-123',
       draft_id: DRAFT,
       last_error: null,
@@ -255,20 +276,24 @@ describe('分身草稿', () => {
         question_id: '6b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
         kind: 'question',
         text: '毛利率按哪个口径？',
+        route: 'user' as const,
       },
       {
         ...base,
         question_id: '7b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
-        kind: 'question',
-        text: '已转的',
-        route: 'user' as const,
+        kind: 'ask_before',
+        text: '取几年？',
+        route: 'operator' as const,
+        route_reason: '用例里写了三年',
       },
     ])
     vi.mocked(answerQuestion).mockResolvedValue(true)
     vi.mocked(questionToUser).mockResolvedValue(undefined)
+    vi.mocked(questionTake).mockResolvedValue(undefined)
     renderPage()
     expect(await screen.findByText('执行 python calc.py？')).toBeInTheDocument()
-    expect(screen.getByText('已转给用户，等用户回答。')).toBeInTheDocument()
+    expect(screen.getByText('在用户那里，等用户回答。')).toBeInTheDocument()
+    expect(screen.getByText('改由我们答：用例里写了三年')).toBeInTheDocument()
     fireEvent.click(screen.getByText('批准'))
     await waitFor(() =>
       expect(answerQuestion).toHaveBeenCalledWith(
@@ -277,9 +302,24 @@ describe('分身草稿', () => {
         CSRF,
       ),
     )
+    // 归用户的：没写理由不能改由我们答
+    const takeButton = screen.getByRole('button', { name: '改由我们答' })
+    expect(takeButton).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('为什么这只是跑法问题（一句话）'), {
+      target: { value: '只是问输出格式' },
+    })
+    fireEvent.click(takeButton)
+    await waitFor(() =>
+      expect(questionTake).toHaveBeenCalledWith(
+        '6b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+        '只是问输出格式',
+        CSRF,
+      ),
+    )
+    // 改派给我们的：可以转回用户
     fireEvent.click(screen.getByText('转给用户'))
     await waitFor(() =>
-      expect(questionToUser).toHaveBeenCalledWith('6b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10', CSRF),
+      expect(questionToUser).toHaveBeenCalledWith('7b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10', CSRF),
     )
   })
 })

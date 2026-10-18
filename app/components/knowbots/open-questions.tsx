@@ -9,6 +9,7 @@ import { ApiClientError } from '@/lib/api/client'
 import {
   answerQuestion,
   fetchQuestions,
+  questionTake,
   questionToUser,
   type AnswerInput,
 } from '@/lib/knowbots/client'
@@ -16,8 +17,9 @@ import {
 const FIELD = 'mt-1 w-full rounded-md border px-3 py-2 text-sm'
 const KEY = ['admin', 'knowbots'] as const
 
-// 测试中待人决定的问题（SDD 0027 §3.4，有人值守）。审批与跑法层面的由我们答；
-// 投资判断转给用户本人（C-L1），拿不准的一律转给用户；转给用户的这里只看不答。
+// 测试中待人决定的问题（SDD 0027 §3.4，有人值守）。审批由我们答；反问与开步前的提问
+// 建出来就归用户本人（C-L1，审读第 2 条），这里只看不答；确认只是跑法问题的，写一句
+// 理由改由我们答，答错了方向还能转回用户。
 export function OpenQuestions({ csrfToken }: { csrfToken: string }) {
   const t = useTranslations('knowbots.questions')
   const client = useQueryClient()
@@ -42,6 +44,12 @@ export function OpenQuestions({ csrfToken }: { csrfToken: string }) {
     onSuccess: done,
     onError,
   })
+  const take = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      questionTake(id, reason, csrfToken),
+    onSuccess: done,
+    onError,
+  })
 
   if (list.isPending || list.isError || list.data.length === 0) return null
   return (
@@ -57,9 +65,10 @@ export function OpenQuestions({ csrfToken }: { csrfToken: string }) {
         <QuestionCard
           key={q.question_id}
           question={q}
-          busy={answer.isPending || route.isPending}
+          busy={answer.isPending || route.isPending || take.isPending}
           onAnswer={(value) => answer.mutate({ id: q.question_id, value })}
           onToUser={() => route.mutate(q.question_id)}
+          onTake={(reason) => take.mutate({ id: q.question_id, reason })}
         />
       ))}
     </section>
@@ -71,11 +80,13 @@ type CardProps = {
   busy: boolean
   onAnswer: (value: AnswerInput) => void
   onToUser: () => void
+  onTake: (reason: string) => void
 }
 
-function QuestionCard({ question: q, busy, onAnswer, onToUser }: CardProps) {
+function QuestionCard({ question: q, busy, onAnswer, onToUser, onTake }: CardProps) {
   const t = useTranslations('knowbots.questions')
   const [text, setText] = useState('')
+  const [reason, setReason] = useState('')
   return (
     <article className="rounded-xl border border-amber-300 p-4 text-sm">
       <p className="text-muted-foreground">
@@ -84,7 +95,26 @@ function QuestionCard({ question: q, busy, onAnswer, onToUser }: CardProps) {
       <p className="mt-1 whitespace-pre-wrap">{q.text}</p>
       {q.last_error ? <p className="text-destructive">{q.last_error}</p> : null}
       {q.route === 'user' ? (
-        <p className="text-muted-foreground mt-2">{t('withUser')}</p>
+        <div className="mt-2 space-y-2">
+          <p className="text-muted-foreground">{t('withUser')}</p>
+          <label className="block">
+            {t('takeReason')}
+            <input
+              className={FIELD}
+              maxLength={200}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={busy || !reason.trim()}
+            onClick={() => onTake(reason.trim())}
+          >
+            {t('take')}
+          </button>
+        </div>
       ) : q.kind === 'tool_approval' ? (
         <div className="mt-2 flex gap-2">
           <button
@@ -106,6 +136,9 @@ function QuestionCard({ question: q, busy, onAnswer, onToUser }: CardProps) {
         </div>
       ) : (
         <div className="mt-2 space-y-2">
+          {q.route_reason ? (
+            <p className="text-muted-foreground">{t('taken', { reason: q.route_reason })}</p>
+          ) : null}
           {q.options.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {q.options.map((o) => (

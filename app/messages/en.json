@@ -138,7 +138,7 @@
     "noDatasets": "This user has not uploaded any data.",
     "questions": {
       "title": "Questions to answer",
-      "intro": "The test stopped where a person has to decide and continues once answered. We answer approvals and how-to-run questions; investment judgements go to the user (C-L1) — when unsure, send it to the user.",
+      "intro": "The test stopped where a person has to decide; it continues once answered. We answer approvals; questions and ask-before prompts go to the user first (C-L1). If one is only about how to run, say why in one line and answer it ourselves; our answers are not the user's confirmation and are not written back to the cases or the rule sources.",
       "failed": "That did not work ({code}).",
       "kind": {
         "tool_approval": "Approval",
@@ -146,18 +146,23 @@
         "ask_before": "Before-step question"
       },
       "where": "case {case} · version {version}",
-      "withUser": "Sent to the user; waiting for their answer.",
+      "withUser": "With the user, waiting for an answer.",
       "approve": "Approve",
       "deny": "Deny",
       "ownWords": "Answer in your own words",
       "answer": "Answer",
       "toUser": "Send to the user",
-      "judgementHint": "Anything that is an investment judgement (definitions, trade-offs, thresholds) goes to the user."
+      "judgementHint": "Anything that is an investment judgement (basis, trade-off, threshold) goes back to the user.",
+      "take": "Answer it ourselves",
+      "takeReason": "Why this is only about how to run (one line)",
+      "taken": "Answered by us: {reason}"
     },
-    "answeredTitle": "Questions answered during tests (the user's go into the next draft's rule sources)",
+    "answeredTitle": "Questions answered during tests (only the user's go into the next draft's rule sources)",
     "answeredBy": {
       "operator": "answered by us",
-      "user": "answered by the user"
-    }
+      "user": "answered by the user",
+      "operatorWhy": "answered by us ({reason})"
+    },
+    "adminOnly": "Only an admin can do this (create drafts, review rule sources, deliver, return). Operators can view, start tests and answer how-to-run questions."
   }
 }

@@ -125,6 +125,7 @@ export const requestDetailSchema = z
           text: z.string(),
           answer: z.record(z.string(), z.string()).nullable(),
           answered_by: z.enum(['operator', 'user']).nullable(),
+          route_reason: z.string().nullable(),
           answered_at: z.string().nullable(),
         })
         .strict(),
@@ -145,7 +146,8 @@ export const requestDetailSchema = z
   })
   .strict()
 
-// 测试中待人决定的问题（有人值守）：审批由我们答，投资判断转给用户（C-L1）
+// 测试中待人决定的问题（有人值守）：审批由我们答；判断与开步前的提问建出来就归用户，
+// 运营写一句理由改派给自己（operator）才能答（C-L1，审读第 2 条）
 const questionSchema = z
   .object({
     question_id: z.string().uuid(),
@@ -159,7 +161,8 @@ const questionSchema = z
     title: z.string(),
     version: z.string(),
     revision: z.number().int(),
-    route: z.enum(['user']).nullable(),
+    route: z.enum(['user', 'operator']).nullable(),
+    route_reason: z.string().nullable(),
     owner_subject: z.string(),
     draft_id: z.string().uuid(),
     last_error: z.string().nullable(),

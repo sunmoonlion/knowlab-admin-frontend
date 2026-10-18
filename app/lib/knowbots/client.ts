@@ -108,6 +108,19 @@ export async function answerQuestion(
   return parse(answeredSchema, done).sent
 }
 
+// 运营认为只是跑法问题：写一句理由，改派给自己答（审读第 2 条）
+export async function questionTake(
+  questionId: string,
+  reason: string,
+  csrfToken: string,
+): Promise<void> {
+  await requestJson(`${QUESTIONS}/${encodeURIComponent(questionId)}/take`, {
+    method: 'POST',
+    csrfToken,
+    body: { reason },
+  })
+}
+
 export async function questionToUser(questionId: string, csrfToken: string): Promise<void> {
   await requestJson(`${QUESTIONS}/${encodeURIComponent(questionId)}/to-user`, {
     method: 'POST',

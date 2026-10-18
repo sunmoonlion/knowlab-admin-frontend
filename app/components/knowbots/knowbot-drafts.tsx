@@ -51,7 +51,13 @@ export function KnowbotDrafts({ csrfToken }: { csrfToken: string }) {
   })
   const requests = useQuery({ queryKey: [...KEY, 'requests'], queryFn: fetchRequests })
   const refreshAll = () => queryClient.invalidateQueries({ queryKey: KEY })
-  const onError = (error: unknown) => setFailed(t('actionFailed', { code: problem(error) }))
+  // 运营点了只有 admin 能做的（建草稿、核出处、交付、退回）：说清楚，不只给代码
+  const onError = (error: unknown) =>
+    setFailed(
+      error instanceof ApiClientError && error.status === 403
+        ? t('adminOnly')
+        : t('actionFailed', { code: problem(error) }),
+    )
 
   return (
     <div className="mt-6 space-y-8">
@@ -362,7 +368,11 @@ function RequestDetailPanel({
             {answered.map((a) => (
               <li key={a.question_id}>
                 {a.text} → {a.answer?.text ?? a.answer?.option_id ?? a.answer?.decision} ·{' '}
-                {t(`answeredBy.${a.answered_by ?? 'operator'}`)}
+                {a.answered_by === 'user'
+                  ? t('answeredBy.user')
+                  : a.route_reason
+                    ? t('answeredBy.operatorWhy', { reason: a.route_reason })
+                    : t('answeredBy.operator')}
               </li>
             ))}
           </ul>
