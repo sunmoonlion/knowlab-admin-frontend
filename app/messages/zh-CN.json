@@ -83,11 +83,8 @@
     "loadFailed": "读取失败，请刷新再试。",
     "noPermission": "当前账号没有管理权限（要 admin 或 operator 角色）。请退出，用管理员账号登录。",
     "actionFailed": "操作没成功（{code}）。",
-    "draftsTitle": "草稿",
     "requestsTitle": "用户的提交",
     "filter": "按状态看",
-    "all": "全部",
-    "noDrafts": "没有这个状态的草稿。",
     "noRequests": "还没有提交。",
     "noDraftYet": "还没有草稿",
     "status": {
@@ -100,7 +97,6 @@
     "draft": "第 {version} 版 · 第 {revision} 稿",
     "meta": "用户 {owner} · 运行方 {runtime}",
     "attempts": "已发起 {n} 次",
-    "ruleSources": "规则出处",
     "reviewedBy": "已由 {who} 逐条核对",
     "notReviewed": "还没核对出处",
     "review": "已逐条核对出处",
@@ -119,10 +115,6 @@
     },
     "expectationsMet": "期望满足 {met}/{total}",
     "failedStep": "第 {step} 步没过：{checks}",
-    "open": "看方法并建草稿",
-    "hide": "收起",
-    "method": "用户的方法",
-    "cases": "验收用例",
     "q": {
       "solves": "它解决什么问题？",
       "not_solves": "它不解决什么？",
@@ -134,7 +126,6 @@
     "manifest": "专家清单（knowbot-manifest/v1，JSON）",
     "badJson": "不是合法的 JSON。",
     "createDraft": "建草稿",
-    "datasets": "用户的数据（清单的 data_bindings 照这里写）",
     "noDatasets": "这个用户还没有上传数据。",
     "questions": {
       "title": "待回答的问题",
@@ -163,6 +154,72 @@
       "user": "用户答的",
       "operatorWhy": "我们答的（{reason}）"
     },
-    "adminOnly": "这一步只有 admin 能做（建草稿、核出处、交付、退回）。运营可以看、发起测试、答跑法问题。"
+    "adminOnly": "这一步只有 admin 能做（建草稿、核出处、交付、退回）。运营可以看、发起测试、答跑法问题。",
+    "owner": "用户 {owner}",
+    "questionsWaiting": "{n} 个问题待回答",
+    "filters": {
+      "all": "全部",
+      "todo": "要我们动手",
+      "testing": "测试中",
+      "failed": "未通过",
+      "delivered": "已交付"
+    },
+    "noMatch": "没有这一类的提交。",
+    "stage": {
+      "none": "还没有草稿",
+      "review": "待核出处",
+      "start": "待发起测试",
+      "testing": "测试中",
+      "failed": "测试未通过",
+      "passed": "通过，待交付",
+      "delivered": "已交付"
+    },
+    "progress": "进度",
+    "steps": {
+      "create": "建草稿",
+      "review": "核对出处",
+      "test": "测试",
+      "deliver": "交付"
+    },
+    "next": {
+      "none": "下一步：贴专家清单，建第一稿",
+      "review": "下一步：逐条核对规则出处",
+      "start": "下一步：发起测试",
+      "testing": "测试中：隔一阵点「刷新结果」",
+      "failed": "测试未通过：看上面的结果，改好清单后建下一稿",
+      "passed": "测试通过，交付没成功：重试交付",
+      "delivered": "已交付 knowmart",
+      "revise": "改版：贴新的专家清单，建下一稿"
+    },
+    "deliveredAs": "已交付 knowmart，专家编号 {id}",
+    "reviseButton": "改版，建下一稿",
+    "reviewHint": "每条规则都要能对上用户的原话（C-L1）。看完下面这些再点。",
+    "startHint": "预算按用例平分；超时是整次测试几条用例共用的，等人回答的时间不算。",
+    "runningSince": "开跑于 {at}，已跑 {minutes} 分钟",
+    "refreshedAt": "上次刷新 {at}",
+    "testingHint": "一条用例跑完，下面的结果里才出现一行；跑着的时候结果是空的。",
+    "spent": "花费 {amount} 元",
+    "finishedAt": "结束于 {at}",
+    "noCaseYet": "还没有跑完的用例。",
+    "reference": "对照材料",
+    "tabs": {
+      "method": "用户的方法",
+      "cases": "验收用例",
+      "datasets": "用户的数据",
+      "rules": "规则出处",
+      "answered": "答过的问题",
+      "history": "历次草稿"
+    },
+    "noCases": "没有验收用例。",
+    "expect": {
+      "where": "交回物 / 哪一项",
+      "how": "怎么比",
+      "value": "应当是",
+      "tolerance": "允许误差"
+    },
+    "bindingsHint": "清单的 data_bindings 照这里写：",
+    "noAnswered": "测试中还没有答过的问题。",
+    "casesPassed": "用例通过 {met}/{total}",
+    "showReport": "看这一稿的结果"
   }
 }

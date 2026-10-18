@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
@@ -8,7 +8,6 @@ import type { Question } from '@/contracts/knowbots'
 import { ApiClientError } from '@/lib/api/client'
 import {
   answerQuestion,
-  fetchQuestions,
   questionTake,
   questionToUser,
   type AnswerInput,
@@ -19,11 +18,16 @@ const KEY = ['admin', 'knowbots'] as const
 
 // 测试中待人决定的问题（SDD 0027 §3.4，有人值守）。审批由我们答；反问与开步前的提问
 // 建出来就归用户本人（C-L1，审读第 2 条），这里只看不答；确认只是跑法问题的，写一句
-// 理由改由我们答，答错了方向还能转回用户。
-export function OpenQuestions({ csrfToken }: { csrfToken: string }) {
+// 理由改由我们答，答错了方向还能转回用户。列表由页面按想法分好传进来，挨着那份草稿显示。
+export function OpenQuestions({
+  questions,
+  csrfToken,
+}: {
+  questions: Question[]
+  csrfToken: string
+}) {
   const t = useTranslations('knowbots.questions')
   const client = useQueryClient()
-  const list = useQuery({ queryKey: [...KEY, 'questions'], queryFn: fetchQuestions })
   const [failed, setFailed] = useState<string | null>(null)
   const done = () => {
     setFailed(null)
@@ -51,17 +55,19 @@ export function OpenQuestions({ csrfToken }: { csrfToken: string }) {
     onError,
   })
 
-  if (list.isPending || list.isError || list.data.length === 0) return null
+  if (questions.length === 0) return null
   return (
     <section aria-label={t('title')} className="space-y-3">
-      <h2 className="font-medium">{t('title')}</h2>
+      <h3 className="font-medium">
+        {t('title')} · {questions.length}
+      </h3>
       <p className="text-muted-foreground text-sm">{t('intro')}</p>
       {failed ? (
         <p className="text-destructive text-sm" role="alert">
           {failed}
         </p>
       ) : null}
-      {list.data.map((q) => (
+      {questions.map((q) => (
         <QuestionCard
           key={q.question_id}
           question={q}

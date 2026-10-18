@@ -83,11 +83,8 @@
     "loadFailed": "Could not load. Please refresh.",
     "noPermission": "This account has no admin rights (the admin or operator role is required). Sign out and sign in with an administrator account.",
     "actionFailed": "The action failed ({code}).",
-    "draftsTitle": "Drafts",
     "requestsTitle": "Submissions",
     "filter": "Status",
-    "all": "All",
-    "noDrafts": "No drafts in this status.",
     "noRequests": "No submissions yet.",
     "noDraftYet": "No draft yet",
     "status": {
@@ -100,7 +97,6 @@
     "draft": "Version {version} · draft {revision}",
     "meta": "User {owner} · runtime {runtime}",
     "attempts": "{n} attempts",
-    "ruleSources": "Rule sources",
     "reviewedBy": "Checked one by one by {who}",
     "notReviewed": "Rule sources not checked yet",
     "review": "Rule sources checked",
@@ -119,10 +115,6 @@
     },
     "expectationsMet": "expectations met {met}/{total}",
     "failedStep": "Step {step} failed: {checks}",
-    "open": "Read the method and create a draft",
-    "hide": "Hide",
-    "method": "The user's method",
-    "cases": "Acceptance cases",
     "q": {
       "solves": "What problem does it solve?",
       "not_solves": "What does it not solve?",
@@ -134,7 +126,6 @@
     "manifest": "Expert manifest (knowbot-manifest/v1, JSON)",
     "badJson": "This is not valid JSON.",
     "createDraft": "Create draft",
-    "datasets": "The user's data (write data_bindings from these)",
     "noDatasets": "This user has not uploaded any data.",
     "questions": {
       "title": "Questions to answer",
@@ -163,6 +154,72 @@
       "user": "answered by the user",
       "operatorWhy": "answered by us ({reason})"
     },
-    "adminOnly": "Only an admin can do this (create drafts, review rule sources, deliver, return). Operators can view, start tests and answer how-to-run questions."
+    "adminOnly": "Only an admin can do this (create drafts, review rule sources, deliver, return). Operators can view, start tests and answer how-to-run questions.",
+    "owner": "User {owner}",
+    "questionsWaiting": "{n} questions waiting",
+    "filters": {
+      "all": "All",
+      "todo": "Needs us",
+      "testing": "Testing",
+      "failed": "Did not pass",
+      "delivered": "Delivered"
+    },
+    "noMatch": "No submissions of this kind.",
+    "stage": {
+      "none": "No draft yet",
+      "review": "Check rule sources",
+      "start": "Ready to test",
+      "testing": "Testing",
+      "failed": "Did not pass",
+      "passed": "Passed, to deliver",
+      "delivered": "Delivered"
+    },
+    "progress": "Progress",
+    "steps": {
+      "create": "Create draft",
+      "review": "Check sources",
+      "test": "Test",
+      "deliver": "Deliver"
+    },
+    "next": {
+      "none": "Next: paste the expert manifest to create the first draft",
+      "review": "Next: check every rule source",
+      "start": "Next: start the test",
+      "testing": "Testing: press “Refresh result” now and then",
+      "failed": "Did not pass: read the result above, fix the manifest and create the next draft",
+      "passed": "Passed, but delivery failed: retry delivery",
+      "delivered": "Delivered to knowmart",
+      "revise": "New revision: paste the new manifest to create the next draft"
+    },
+    "deliveredAs": "Delivered to knowmart as expert {id}",
+    "reviseButton": "Revise: create the next draft",
+    "reviewHint": "Every rule must match the user’s own words (C-L1). Read them all before confirming.",
+    "startHint": "The budget is split evenly across cases; the timeout is shared by all cases of the run and excludes time spent waiting for answers.",
+    "runningSince": "Started {at}, running for {minutes} minutes",
+    "refreshedAt": "Last refreshed {at}",
+    "testingHint": "A case shows up in the result only when it has finished; while it runs the result is empty.",
+    "spent": "Spent {amount} CNY",
+    "finishedAt": "Finished {at}",
+    "noCaseYet": "No case has finished yet.",
+    "reference": "Reference",
+    "tabs": {
+      "method": "Method",
+      "cases": "Acceptance cases",
+      "datasets": "User data",
+      "rules": "Rule sources",
+      "answered": "Answered questions",
+      "history": "Drafts"
+    },
+    "noCases": "No acceptance cases.",
+    "expect": {
+      "where": "Artifact / field",
+      "how": "Comparison",
+      "value": "Expected",
+      "tolerance": "Tolerance"
+    },
+    "bindingsHint": "Write the manifest’s data_bindings like this:",
+    "noAnswered": "No questions answered during tests yet.",
+    "casesPassed": "{met}/{total} cases passed",
+    "showReport": "Show this draft’s result"
   }
 }

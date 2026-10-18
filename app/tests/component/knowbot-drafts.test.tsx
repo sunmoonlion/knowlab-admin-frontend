@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { KnowbotDrafts } from '@/components/knowbots/knowbot-drafts'
-import type { AdminDraft } from '@/contracts/knowbots'
+import type { AdminDraft, AdminRequest, RequestDetail } from '@/contracts/knowbots'
 import { ApiClientError } from '@/lib/api/client'
 import {
   answerQuestion,
@@ -63,11 +63,62 @@ function draft(overrides: Partial<AdminDraft> = {}): AdminDraft {
   }
 }
 
+function request(overrides: Partial<AdminRequest> = {}): AdminRequest {
+  return {
+    request_id: REQUEST,
+    title: '财务分析与预测',
+    runtime: 'knowbench',
+    created_at: '2026-10-18T10:00:00Z',
+    owner_subject: 'user-123',
+    drafts: [],
+    ...overrides,
+  }
+}
+
+function detail(overrides: Partial<RequestDetail> = {}): RequestDetail {
+  return {
+    contract_version: 1,
+    request_id: REQUEST,
+    title: '财务分析与预测',
+    owner_subject: 'user-123',
+    runtime: 'knowbench',
+    idea: { kind: 'skill', skill: '# 我的方法' },
+    cases: [
+      {
+        case_id: 'c1',
+        input: { question: '茅台近三年营收？', answers: {} },
+        expectations: [
+          {
+            artifact: 'official',
+            path: 'official_by_year.2024.revenue',
+            kind: 'approx',
+            value: 170899152276.34,
+            tolerance: 0.001,
+          },
+        ],
+      },
+    ],
+    answered: [],
+    datasets: [
+      {
+        dataset_id: '3b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+        name: '年报.pdf',
+        version: '1',
+        content_type: 'application/pdf',
+        size_bytes: 10,
+        sha256: 'a'.repeat(64),
+        created_at: null,
+      },
+    ],
+    ...overrides,
+  }
+}
+
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
-      <NextIntlClientProvider locale="zh-CN" messages={messages}>
+      <NextIntlClientProvider locale="zh-CN" messages={messages} timeZone="Asia/Shanghai">
         <KnowbotDrafts csrfToken={CSRF} />
       </NextIntlClientProvider>
     </QueryClientProvider>,
@@ -85,7 +136,8 @@ beforeEach(() => {
     startTest,
   ])
     vi.mocked(fn).mockReset()
-  vi.mocked(fetchRequests).mockResolvedValue([])
+  vi.mocked(fetchRequests).mockResolvedValue([request()])
+  vi.mocked(fetchRequestDetail).mockResolvedValue(detail())
   vi.mocked(fetchQuestions).mockReset().mockResolvedValue([])
   vi.mocked(answerQuestion).mockReset()
   vi.mocked(questionToUser).mockReset()
@@ -103,7 +155,7 @@ describe('专家草稿', () => {
     vi.mocked(fetchDrafts).mockRejectedValue(forbidden)
     vi.mocked(fetchRequests).mockRejectedValue(forbidden)
     renderPage()
-    expect(await screen.findAllByText(messages.knowbots.noPermission)).toHaveLength(2)
+    expect(await screen.findByText(messages.knowbots.noPermission)).toBeInTheDocument()
     expect(screen.queryByText(messages.knowbots.loadFailed)).toBeNull()
   })
 
@@ -130,7 +182,7 @@ describe('专家草稿', () => {
         CSRF,
       ),
     )
-    expect(vi.mocked(fetchDrafts)).toHaveBeenCalledWith('pending_test')
+    expect(vi.mocked(fetchDrafts)).toHaveBeenCalledWith(null)
   })
 
   it('offers refresh and reset while testing, retry delivery when passed, and shows errors', async () => {
@@ -210,49 +262,19 @@ describe('专家草稿', () => {
 
   it('reads the method and creates a draft from a pasted manifest', async () => {
     vi.mocked(fetchDrafts).mockResolvedValue([])
-    vi.mocked(fetchRequests).mockResolvedValue([
-      {
-        request_id: REQUEST,
-        title: '财务分析与预测',
-        runtime: 'knowbench',
-        created_at: null,
-        owner_subject: 'user-123',
-        drafts: [],
-      },
-    ])
-    vi.mocked(fetchRequestDetail).mockResolvedValue({
-      contract_version: 1,
-      request_id: REQUEST,
-      title: '财务分析与预测',
-      owner_subject: 'user-123',
-      runtime: 'knowbench',
-      idea: { kind: 'skill', skill: '# 我的方法' },
-      cases: [{ case_id: 'c1' }],
-      answered: [],
-      datasets: [
-        {
-          dataset_id: '3b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
-          name: '年报.pdf',
-          version: '1',
-          content_type: 'application/pdf',
-          size_bytes: 10,
-          sha256: 'a'.repeat(64),
-          created_at: null,
-        },
-      ],
-    })
     vi.mocked(createDraft).mockResolvedValue({ contract_version: 1, draft_id: DRAFT, version: '1' })
     renderPage()
-    fireEvent.click(await screen.findByText('看方法并建草稿'))
+    expect(await screen.findByText('下一步：贴专家清单，建第一稿')).toBeInTheDocument()
     expect(await screen.findByText('# 我的方法')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: /用户的数据/ }))
     expect(screen.getByText(/年报\.pdf · .*"dataset_id":"3b8a6c3e/)).toBeInTheDocument()
     const box = screen.getByLabelText('专家清单（knowbot-manifest/v1，JSON）')
     fireEvent.change(box, { target: { value: '{not json' } })
-    fireEvent.click(screen.getByText('建草稿'))
+    fireEvent.click(screen.getByRole('button', { name: '建草稿' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('不是合法的 JSON')
     expect(createDraft).not.toHaveBeenCalled()
     fireEvent.change(box, { target: { value: '{"schema": "knowbot-manifest/v1"}' } })
-    fireEvent.click(screen.getByText('建草稿'))
+    fireEvent.click(screen.getByRole('button', { name: '建草稿' }))
     await waitFor(() =>
       expect(createDraft).toHaveBeenCalledWith(REQUEST, { schema: 'knowbot-manifest/v1' }, CSRF),
     )
@@ -274,7 +296,9 @@ describe('专家草稿', () => {
       draft_id: DRAFT,
       last_error: null,
     }
-    vi.mocked(fetchDrafts).mockResolvedValue([])
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({ status: 'testing', rules_reviewed_by: 'admin-1', run_attempts: 1 }),
+    ])
     vi.mocked(fetchQuestions).mockResolvedValue([
       {
         ...base,
@@ -332,5 +356,95 @@ describe('专家草稿', () => {
     await waitFor(() =>
       expect(questionToUser).toHaveBeenCalledWith('7b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10', CSRF),
     )
+  })
+
+  it('lists the ideas with what needs us first, filters them, and shows one idea at a time', async () => {
+    const OTHER = '2b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10'
+    const OTHER_DRAFT = '4b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10'
+    vi.mocked(fetchRequests).mockResolvedValue([
+      request({ request_id: OTHER, title: '读我的表回答营收', created_at: '2026-10-18T12:00:00Z' }),
+      request(),
+    ])
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({ status: 'testing', rules_reviewed_by: 'admin-1', run_attempts: 1 }),
+      draft({
+        draft_id: OTHER_DRAFT,
+        request_id: OTHER,
+        title: '读我的表回答营收',
+        status: 'delivered',
+        knowbot_id: 'kb-1',
+      }),
+    ])
+    vi.mocked(fetchRequestDetail).mockImplementation(async (id) =>
+      detail(id === OTHER ? { request_id: OTHER, title: '读我的表回答营收' } : {}),
+    )
+    renderPage()
+    const list = await screen.findByRole('complementary', { name: '用户的提交' })
+    // 测试中的排在已交付的前面，默认看第一个
+    const rows = within(list).getAllByRole('button', {
+      current: undefined,
+      name: /财务分析|读我的表/,
+    })
+    expect(rows[0]).toHaveTextContent('财务分析与预测')
+    expect(
+      await screen.findByRole('heading', { level: 2, name: '财务分析与预测' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('测试中：隔一阵点「刷新结果」')).toBeInTheDocument()
+    // 点另一个：右边换成它，操作和结果都在同一处
+    fireEvent.click(within(list).getByText('读我的表回答营收'))
+    expect(
+      await screen.findByRole('heading', { level: 2, name: '读我的表回答营收' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('已交付 knowmart，专家编号 kb-1')).toBeInTheDocument()
+    expect(screen.queryByText('刷新结果')).toBeNull()
+    // 只看测试中的
+    fireEvent.click(within(list).getByRole('button', { name: '测试中 · 1' }))
+    expect(within(list).queryByText('读我的表回答营收')).toBeNull()
+    expect(within(list).getByText('财务分析与预测')).toBeInTheDocument()
+  })
+
+  it('shows how long a test has run and when it was last refreshed', async () => {
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({
+        status: 'testing',
+        rules_reviewed_by: 'admin-1',
+        run_attempts: 1,
+        run_started_at: new Date(Date.now() - 5 * 60_000).toISOString(),
+      }),
+    ])
+    vi.mocked(draftAction).mockResolvedValue(undefined)
+    renderPage()
+    expect(await screen.findByText(/已跑 5 分钟/)).toBeInTheDocument()
+    expect(screen.getByText(messages.knowbots.testingHint)).toBeInTheDocument()
+    fireEvent.click(screen.getByText('刷新结果'))
+    expect(await screen.findByText(/上次刷新/)).toBeInTheDocument()
+  })
+
+  it('puts the next draft right under a failed result and keeps earlier drafts in a tab', async () => {
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({ status: 'failed', rules_reviewed_by: 'admin-1', last_error: 'timed out' }),
+      draft({
+        draft_id: '8b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+        revision: 2,
+        status: 'pending_test',
+      }),
+    ])
+    renderPage()
+    // 第 2 稿最新：现在要核出处，不是建草稿
+    expect(await screen.findByText('下一步：逐条核对规则出处')).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('tab', { name: /历次草稿 · 2/ }))
+    expect(screen.getByText(/第 1 版 · 第 2 稿 · 待测试/)).toBeInTheDocument()
+    expect(screen.getByText(/第 1 版 · 第 1 稿 · 测试未通过/)).toBeInTheDocument()
+    expect(screen.getByText('timed out')).toBeInTheDocument()
+  })
+
+  it('reads the acceptance cases as a table, not raw JSON', async () => {
+    vi.mocked(fetchDrafts).mockResolvedValue([])
+    renderPage()
+    fireEvent.click(await screen.findByRole('tab', { name: /验收用例 · 1/ }))
+    expect(screen.getByText(/茅台近三年营收？/)).toHaveTextContent('c1 · 茅台近三年营收？')
+    expect(screen.getByText('official / official_by_year.2024.revenue')).toBeInTheDocument()
+    expect(screen.getByText('170899152276.34')).toBeInTheDocument()
+    expect(screen.getByText('0.001')).toBeInTheDocument()
   })
 })
