@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
-// 管理端分身草稿的约定（后端 app/interfaces/endpoints/knowbot_routes.py，SDD 0027）。
+// 管理端创意、分身、专家的约定（后端 app/interfaces/endpoints/knowbot_routes.py，SDD 0027、0037）。
+// 代码里仍叫 request（创意）、draft（分身）、knowbot（专家）。
 
 const RUNTIME = /^[a-z][a-z0-9-]{0,31}$/
 const CASE_ID = /^[A-Za-z0-9._-]{1,64}$/
@@ -106,6 +107,8 @@ const adminDraftSchema = z
     // 核对出处前要处理的补充；这一稿建好后才写的条数（下一稿处理）。旧后端没有这两项
     amendments_open: z.array(z.string().uuid()).max(200).optional(),
     amendments_newer: z.number().int().min(0).optional(),
+    // 交付时间（SDD 0037 专家栏）；之前交付的没有
+    delivered_at: z.string().nullable().optional(),
   })
   .strict()
 
@@ -226,6 +229,79 @@ export const startedSchema = z
   .object({ contract_version: z.literal(1), run_id: z.string().min(1), run_status: z.string() })
   .strict()
 
+// 一条用例的产出：成稿与各步交回物（SDD 0037，契约 test-run-case-outputs，运行方给）
+const outputCheckSchema = z
+  .object({
+    label: z.string().max(200),
+    passed: z.boolean().nullable().optional(),
+    message: z.string().max(1000).optional(),
+  })
+  .strict()
+
+export const OUTCOMES = [
+  'accepted',
+  'rejected',
+  'failed',
+  'over_budget',
+  'cancelled',
+  'running',
+  'not_reached',
+] as const
+
+const stepOutputSchema = z
+  .object({
+    step_id: z.string().min(1).max(128),
+    title: z.string().max(200).optional(),
+    outcome: z.enum(OUTCOMES),
+    artifact: z.unknown().optional(),
+    artifact_omitted_bytes: z.number().int().min(0).nullable().optional(),
+    returned_raw: z.string().nullable().optional(),
+    checks: z.array(outputCheckSchema).max(64).optional(),
+  })
+  .strict()
+
+const caseOutputsSchema = z
+  .object({
+    contract: z.literal('knowbot-test-run/v1'),
+    run_id: z.string(),
+    case_id: z.string().regex(CASE_ID),
+    deliverable: z
+      .object({ path: z.string().max(1024), text: z.string(), truncated: z.boolean().optional() })
+      .strict()
+      .nullable()
+      .optional(),
+    deliverable_note: z.string().max(500).nullable().optional(),
+    steps: z.array(stepOutputSchema).max(200).optional(),
+    error: z.string().max(500).nullable().optional(),
+  })
+  .strict()
+
+export const outputsSchema = z
+  .object({
+    contract_version: z.literal(1),
+    draft_id: z.string().uuid(),
+    run_id: z.string().nullable(),
+    cases: z.array(
+      z
+        .object({
+          case_id: z.string().regex(CASE_ID),
+          fetched_at: z.string().nullable(),
+          note: z.string().nullable(),
+          outputs: caseOutputsSchema.nullable(),
+        })
+        .strict(),
+    ),
+  })
+  .strict()
+
+export const manifestSchema = z
+  .object({
+    contract_version: z.literal(1),
+    draft_id: z.string().uuid(),
+    manifest: z.record(z.string(), z.unknown()),
+  })
+  .strict()
+
 export type DraftStatus = z.infer<typeof draftStatusSchema>
 export type AdminDraft = z.infer<typeof adminDraftSchema>
 export type AdminRequest = z.infer<typeof adminRequestSchema>
@@ -233,3 +309,6 @@ export type RequestDetail = z.infer<typeof requestDetailSchema>
 export type CaseResult = z.infer<typeof caseResultSchema>
 export type Progress = z.infer<typeof progressSchema>
 export type Amendment = z.infer<typeof amendmentSchema>
+export type Outputs = z.infer<typeof outputsSchema>
+export type CaseOutputs = z.infer<typeof caseOutputsSchema>
+export type StepOutput = z.infer<typeof stepOutputSchema>

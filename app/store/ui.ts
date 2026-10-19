@@ -20,11 +20,14 @@ type UiState = {
   themeMode: ThemeMode
   density: Density
   openTabs: OpenTab[]
+  // 右边对照材料栏的宽度（SDD 0037）
+  sidePanelWidth: number
   setSidebarCollapsed(value: boolean): void
   setMobileNavigationOpen(value: boolean): void
   setSettingsOpen(value: boolean): void
   setThemeMode(value: ThemeMode): void
   setDensity(value: Density): void
+  setSidePanelWidth(value: number): void
   registerTab(tab: OpenTab): void
   closeTab(key: string): void
   closeOtherTabs(key: string): void
@@ -47,11 +50,13 @@ export const useUiStore = create<UiState>()(
       themeMode: 'system',
       density: 'comfortable',
       openTabs: [dashboardTab],
+      sidePanelWidth: 384,
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
       setMobileNavigationOpen: (mobileNavigationOpen) => set({ mobileNavigationOpen }),
       setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
       setThemeMode: (themeMode) => set({ themeMode }),
       setDensity: (density) => set({ density }),
+      setSidePanelWidth: (sidePanelWidth) => set({ sidePanelWidth }),
       registerTab: (tab) =>
         set((state) => ({
           openTabs: state.openTabs.some((item) => item.key === tab.key)
@@ -88,11 +93,12 @@ export const useUiStore = create<UiState>()(
     {
       name: 'sunmoonai-admin-ui-v1',
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ sidebarCollapsed, themeMode, density, openTabs }) => ({
+      partialize: ({ sidebarCollapsed, themeMode, density, openTabs, sidePanelWidth }) => ({
         sidebarCollapsed,
         themeMode,
         density,
         openTabs,
+        sidePanelWidth,
       }),
     },
   ),

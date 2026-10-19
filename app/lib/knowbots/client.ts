@@ -7,12 +7,15 @@ import {
   createdDraftSchema,
   questionsSchema,
   draftsSchema,
+  manifestSchema,
+  outputsSchema,
   requestDetailSchema,
   requestsSchema,
   startedSchema,
   type AdminDraft,
   type AdminRequest,
   type DraftStatus,
+  type Outputs,
   type Question,
   type RequestDetail,
 } from '@/contracts/knowbots'
@@ -52,7 +55,17 @@ export async function fetchDrafts(status: DraftStatus | null): Promise<AdminDraf
   return parse(draftsSchema, await requestJson(`${DRAFTS}${query}`)).drafts
 }
 
-// 过渡做法：管理员贴清单建草稿（等「后端自动生成」定了再换）
+// 分身最近一次测试每条用例的成稿与各步交回物：测试人员验证这一稿用（SDD 0037）
+export async function fetchOutputs(draftId: string): Promise<Outputs> {
+  return parse(outputsSchema, await requestJson(draftPath(draftId, 'outputs')))
+}
+
+// 分身的清单原文：对照材料里只读、可复制
+export async function fetchManifest(draftId: string): Promise<Record<string, unknown>> {
+  return parse(manifestSchema, await requestJson(draftPath(draftId, 'manifest'))).manifest
+}
+
+// 手工孵化：管理员贴清单孵出分身（以后的辅助、自动孵化也接在这里，SDD 0037）
 export async function createDraft(requestId: string, manifest: unknown, csrfToken: string) {
   const answer = await requestJson(`${REQUESTS}/${encodeURIComponent(requestId)}/drafts`, {
     method: 'POST',

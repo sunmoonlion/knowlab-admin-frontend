@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { LogoutButton } from '@/components/auth/logout-button'
+import { KnowbotTodo } from '@/components/knowbots/todo'
 import { requireBrowserSession } from '@/lib/server/auth-session'
 
 export const dynamic = 'force-dynamic'
@@ -35,6 +36,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           })}
         </p>
       </div>
+      <KnowbotTodo />
       <section className="bg-card mt-8 rounded-xl border p-5 shadow-sm">
         <h2 className="font-medium">{tNav('governance')}</h2>
         <p className="text-muted-foreground mt-2 text-sm">{tNav('governanceDescription')}</p>

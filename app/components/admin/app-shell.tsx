@@ -11,6 +11,7 @@ import {
 } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store/ui'
+import { useTodoCounts } from '@/components/knowbots/shared'
 import { InterfaceSettings } from './interface-settings'
 
 type AppShellProps = {
@@ -35,6 +36,8 @@ export function AppShell({ children, locale, roles, userLabel }: AppShellProps) 
   const closeOtherTabs = useUiStore((state) => state.closeOtherTabs)
   const syncTabs = useUiStore((state) => state.syncTabs)
   const allowedNavigation = useMemo(() => filterNavigationByRoles(roles), [roles])
+  // 创意、分身、专家三栏上的「要我们动手」条数（SDD 0037）
+  const todo = useTodoCounts(allowedNavigation.some((item) => item.key === 'ideas'))
   const current = findNavigationItem(pathname)
   const allowedTabs = useMemo(
     () =>
@@ -81,6 +84,7 @@ export function AppShell({ children, locale, roles, userLabel }: AppShellProps) 
               label={t(item.labelKey)}
               active={item.key === current?.key}
               collapsed={collapsed}
+              badge={todo?.[item.key as keyof typeof todo]}
               onNavigate={() => setMobileOpen(false)}
             />
           ))}
@@ -163,25 +167,40 @@ function NavigationLink({
   label,
   active,
   collapsed,
+  badge,
   onNavigate,
 }: {
   item: AdminNavigationItem
   label: string
   active: boolean
   collapsed: boolean
+  badge?: number
   onNavigate(): void
 }) {
   const Icon = item.icon
+  const shown = badge ? (badge > 99 ? '99+' : String(badge)) : null
   return (
     <Link
       href={item.path}
-      className={cn('admin-navigation-link', active && 'admin-navigation-link-active')}
+      className={cn('admin-navigation-link relative', active && 'admin-navigation-link-active')}
       aria-current={active ? 'page' : undefined}
-      title={collapsed ? label : undefined}
+      title={collapsed ? (shown ? `${label} · ${shown}` : label) : undefined}
       onClick={onNavigate}
     >
       <Icon aria-hidden />
       {!collapsed ? <span>{label}</span> : null}
+      {shown ? (
+        <span
+          className={cn(
+            'rounded-full bg-amber-500 text-[10px] leading-4 font-medium text-white',
+            collapsed
+              ? 'absolute top-1 right-1 size-2 overflow-hidden text-transparent'
+              : 'ml-auto px-1.5',
+          )}
+        >
+          {shown}
+        </span>
+      ) : null}
     </Link>
   )
 }

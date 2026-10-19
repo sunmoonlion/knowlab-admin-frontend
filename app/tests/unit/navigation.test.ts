@@ -5,7 +5,9 @@ describe('admin navigation', () => {
   it('uses the same metadata for role filtering and locale-aware route matching', () => {
     expect(filterNavigationByRoles([]).map((item) => item.key)).toEqual(['dashboard', 'settings'])
     expect(filterNavigationByRoles(['operator']).map((item) => item.key)).toContain('reference')
-    expect(filterNavigationByRoles(['operator']).map((item) => item.key)).toContain('knowbots')
+    expect(filterNavigationByRoles(['operator']).map((item) => item.key)).toEqual(
+      expect.arrayContaining(['ideas', 'avatars', 'experts']),
+    )
     expect(filterNavigationByRoles(['operator']).map((item) => item.key)).not.toContain(
       'rich-reference',
     )

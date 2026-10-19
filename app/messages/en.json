@@ -61,7 +61,9 @@
     "closeTab": "Close {name}",
     "governance": "Administration capability migration",
     "governanceDescription": "P0-007E will add navigation, authorization, CRUD, audit and shared tooling on this foundation.",
-    "knowbots": "Expert drafts"
+    "ideas": "Ideas",
+    "avatars": "Avatars",
+    "experts": "Experts"
   },
   "settings": {
     "title": "Interface settings",
@@ -77,8 +79,6 @@
     "fullscreen": "Toggle fullscreen"
   },
   "knowbots": {
-    "title": "Expert drafts",
-    "intro": "Turn submitted ideas into drafts, check every rule source, and start tests here; a passing draft is delivered to knowmart. The method comes only from the user (C-L1); reports only cover whether it runs correctly (C-L5).",
     "loading": "Loading…",
     "loadFailed": "Could not load. Please refresh.",
     "noPermission": "This account has no admin rights (the admin or operator role is required). Sign out and sign in with an administrator account.",
@@ -86,7 +86,7 @@
     "requestsTitle": "Submissions",
     "filter": "Status",
     "noRequests": "No submissions yet.",
-    "noDraftYet": "No draft yet",
+    "noDraftYet": "No avatar yet",
     "status": {
       "pending_test": "Waiting for test",
       "testing": "Testing",
@@ -94,7 +94,7 @@
       "failed": "Did not pass",
       "delivered": "Delivered"
     },
-    "draft": "Version {version} · draft {revision}",
+    "draft": "Avatar {version}.{revision}",
     "meta": "User {owner} · runtime {runtime}",
     "attempts": "{n} attempts",
     "reviewedBy": "Checked one by one by {who}",
@@ -125,7 +125,7 @@
     },
     "manifest": "Expert manifest (knowbot-manifest/v1, JSON)",
     "badJson": "This is not valid JSON.",
-    "createDraft": "Create draft",
+    "createDraft": "Hatch avatar",
     "noDatasets": "This user has not uploaded any data.",
     "questions": {
       "title": "Questions to answer",
@@ -166,7 +166,7 @@
     },
     "noMatch": "No submissions of this kind.",
     "stage": {
-      "none": "No draft yet",
+      "none": "No avatar yet",
       "review": "Check rule sources",
       "start": "Ready to test",
       "testing": "Testing",
@@ -176,23 +176,24 @@
     },
     "progress": "Progress",
     "steps": {
-      "create": "Create draft",
+      "hatch": "Hatch",
       "review": "Check sources",
       "test": "Test",
       "deliver": "Deliver"
     },
     "next": {
-      "none": "Next: paste the expert manifest to create the first draft",
+      "none": "Next: hatch the first avatar",
       "review": "Next: check every rule source",
       "start": "Next: start the test",
       "testing": "Testing: press “Refresh result” now and then",
-      "failed": "Did not pass: read the result above, fix the manifest and create the next draft",
+      "failed": "Did not pass: read the result and outputs above, fix the manifest and hatch the next avatar",
       "passed": "Passed, but delivery failed: retry delivery",
       "delivered": "Delivered to knowmart",
-      "revise": "New revision: paste the new manifest to create the next draft"
+      "revise": "New revision: hatch the next avatar",
+      "superseded": "A newer avatar was hatched after this one; this is history"
     },
     "deliveredAs": "Delivered to knowmart as expert {id}",
-    "reviseButton": "Revise: create the next draft",
+    "reviseButton": "Revise: hatch the next avatar",
     "reviewHint": "Every rule must match the user’s own words (C-L1). Read them all before confirming.",
     "startHint": "The budget is split evenly across cases; the timeout is shared by all cases of the run and excludes time spent waiting for answers.",
     "runningSince": "Started {at}, running for {minutes} minutes",
@@ -211,7 +212,8 @@
       "rules": "Rule sources",
       "amendments": "Amendments",
       "answered": "Answered questions",
-      "history": "Drafts"
+      "history": "Avatars",
+      "manifest": "Manifest"
     },
     "noCases": "No acceptance cases.",
     "expect": {
@@ -230,18 +232,120 @@
     "spentSoFar": "{amount} CNY spent so far",
     "queuedLine": "{case} (case {done}/{total}) is queued behind an earlier task of the test account",
     "amendments": {
-      "title": "Amendments the user wrote: cite each one in the next draft's rule sources (ref as shown below), or decline it with a reason.",
+      "title": "Amendments the user wrote: cite each one in the next avatar's rule sources (ref as shown below), or decline it with a reason.",
       "cite": "Cite as: {ref}",
       "status": {
         "open": "waiting",
-        "used": "used in draft {revision}",
+        "used": "used in avatar {revision}",
         "declined": "not followed: {reason}"
       },
       "declinedBy": " ({who})",
       "reason": "Why it is not followed (the user sees this)",
       "decline": "Decline"
     },
-    "reviewBlocked": "Handle these amendments first: cite them in this draft's rule sources, or decline them with a reason (tab “Amendments”).",
-    "newerAmendments": "The user wrote {n} more amendments after this draft was made; they go into the next draft."
+    "reviewBlocked": "Handle these amendments first: cite them in this avatar's rule sources, or decline them with a reason (tab “Amendments”).",
+    "newerAmendments": "The user wrote {n} more amendments after this avatar was hatched; they go into the next avatar.",
+    "pages": {
+      "ideas": {
+        "title": "Ideas",
+        "intro": "The method, acceptance cases and data a user handed in, plus any amendments written later. Handle amendments (cite or decline) and see which avatars were hatched from it; hatching happens on the Avatars page. The method comes only from the user (C-L1)."
+      },
+      "avatars": {
+        "title": "Avatars",
+        "intro": "What was hatched from an idea to be tested. Each avatar goes through four stages on this page: hatch, check sources, test, deliver. After a test, read each case's write-up and step outputs to verify it."
+      },
+      "experts": {
+        "title": "Experts",
+        "intro": "Versions that passed and were delivered to knowmart; retry here when delivery failed."
+      }
+    },
+    "avatarsTitle": "Avatars",
+    "noAvatars": "No avatars yet. Pick an idea, or press “Hatch an avatar”.",
+    "superseded": "a newer avatar exists",
+    "toIdea": "Its idea",
+    "avatarsOfIdea": "Its avatars",
+    "copy": "Copy",
+    "copied": "Copied",
+    "ideaFilters": {
+      "all": "All",
+      "todo": "Needs us",
+      "waiting": "Waiting for the user",
+      "expert": "Has an expert"
+    },
+    "ideaStage": {
+      "amend": "Amendment to handle",
+      "hatch": "To hatch",
+      "waiting": "Waiting for the user",
+      "working": "Avatar in progress",
+      "expert": "Has an expert"
+    },
+    "ideaSteps": {
+      "submit": "Submitted",
+      "test": "Avatar tests",
+      "expert": "Expert"
+    },
+    "ideaNext": {
+      "amend": "Next: handle the user's amendments (cite them in the next avatar, or decline them)",
+      "hatch": "Next: hatch an avatar from this idea",
+      "waiting": "A test question is with the user; waiting for the answer",
+      "working": "An avatar is under test: see the Avatars page",
+      "expert": "Has an expert; hatch the next avatar to revise it"
+    },
+    "hatch": {
+      "button": "Hatch an avatar",
+      "forIdea": "Hatch an avatar from this idea",
+      "title": "Hatch",
+      "pick": "Which idea to hatch",
+      "manual": "Manual hatching: paste the expert manifest",
+      "hint": "Only manual hatching exists for now: the manifest is written elsewhere, pasted here, checked and hatched. Assisted and automatic hatching, the source table, gaps with the user's answers and manifest candidates will go into this block later.",
+      "cancel": "Not now",
+      "next": "Hatch the next avatar"
+    },
+    "side": {
+      "expand": "Expand reference",
+      "collapse": "Collapse reference",
+      "resize": "Drag to resize (arrow keys work too)",
+      "open": "Reference"
+    },
+    "outputs": {
+      "title": "Write-ups and step outputs",
+      "none": "This test brought back no outputs.",
+      "fetchedAt": "fetched {at}",
+      "deliverable": "Write-up",
+      "noDeliverable": "No write-up: {why}",
+      "truncated": "The write-up is long; only the first part is shown.",
+      "steps": "Step outputs",
+      "outcome": {
+        "accepted": "passed",
+        "rejected": "not passed",
+        "failed": "error",
+        "over_budget": "over budget",
+        "cancelled": "stopped",
+        "running": "not finished",
+        "not_reached": "not reached"
+      },
+      "omitted": "Output too large to bring back ({bytes} bytes)",
+      "raw": "Last reply as sent",
+      "rejectedNoCheck": "The reply was not valid JSON, so no check ran.",
+      "error": "Outputs incomplete: {error}"
+    },
+    "experts": {
+      "title": "Experts",
+      "none": "No delivered experts yet.",
+      "filters": {
+        "live": "Live",
+        "failed": "Delivery failed"
+      },
+      "version": "version {version}",
+      "knowbotId": "knowmart id {id}",
+      "deliveredAt": "delivered {at}",
+      "deliveryFailed": "Passed, but delivery failed",
+      "from": "From {avatar}",
+      "versions": "Versions"
+    },
+    "todo": {
+      "title": "Needs us",
+      "line": "{name} · {n}"
+    }
   }
 }
