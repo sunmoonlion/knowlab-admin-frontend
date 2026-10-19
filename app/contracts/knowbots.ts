@@ -68,6 +68,7 @@ const progressSchema = z
     step_title: z.string().max(200),
     attempt: z.number().int().min(0),
     spent: z.string().max(32),
+    queued_behind: z.string().max(64).nullable().optional(),
   })
   .strict()
 
@@ -86,6 +87,8 @@ const adminDraftSchema = z
     run_started_at: z.string().nullable(),
     last_error: z.string().nullable(),
     progress: progressSchema.nullable().optional(),
+    run_status: z.string().max(32).nullable().optional(),
+    run_running_since: z.string().nullable().optional(),
   })
   .strict()
 

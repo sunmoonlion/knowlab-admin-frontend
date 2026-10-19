@@ -409,7 +409,9 @@ describe('专家草稿', () => {
         status: 'testing',
         rules_reviewed_by: 'admin-1',
         run_attempts: 1,
-        run_started_at: new Date(Date.now() - 5 * 60_000).toISOString(),
+        run_started_at: new Date(Date.now() - 6 * 60_000).toISOString(),
+        run_status: 'running',
+        run_running_since: new Date(Date.now() - 5 * 60_000).toISOString(),
         report: {
           status: 'running',
           cases: [],
@@ -441,6 +443,51 @@ describe('专家草稿', () => {
     expect(screen.getByText(messages.knowbots.testingHint)).toBeInTheDocument()
     fireEvent.click(screen.getByText('刷新结果'))
     expect(await screen.findByText(/上次刷新/)).toBeInTheDocument()
+  })
+
+  it('says a test was accepted but not started, and that a case is queued', async () => {
+    // 运行方受理了还没开跑：不拿提交时间说「已跑 x 分钟」（账 136 第 ②）
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({
+        status: 'testing',
+        rules_reviewed_by: 'admin-1',
+        run_attempts: 1,
+        run_started_at: new Date(Date.now() - 10 * 60_000).toISOString(),
+        run_status: 'accepted',
+        run_running_since: null,
+      }),
+    ])
+    const { unmount } = renderPage()
+    expect(await screen.findByText(/^已受理，还没开跑：等测试电脑接手/)).toBeInTheDocument()
+    expect(screen.queryByText(/已跑/)).toBeNull()
+    unmount()
+    // 排在测试账号别的委托后面（0034 §三.3）
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({
+        status: 'testing',
+        rules_reviewed_by: 'admin-1',
+        run_attempts: 1,
+        run_status: 'running',
+        run_running_since: new Date(Date.now() - 20 * 60_000).toISOString(),
+        progress: {
+          case_id: 'c1',
+          cases_done: 0,
+          cases_total: 3,
+          step: 0,
+          steps_total: 8,
+          step_title: '',
+          attempt: 0,
+          spent: '0',
+          queued_behind: '03e447a0-0000-4000-8000-000000000000',
+        },
+      }),
+    ])
+    renderPage()
+    expect(
+      await screen.findByText(
+        'c1（第 1/3 条）在排队：排在测试账号前一个委托后面，等它结束 · 到现在花了 0 元',
+      ),
+    ).toBeInTheDocument()
   })
 
   it('puts the next draft right under a failed result and keeps earlier drafts in a tab', async () => {

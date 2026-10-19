@@ -196,6 +196,8 @@
     "reviewHint": "Every rule must match the user’s own words (C-L1). Read them all before confirming.",
     "startHint": "The budget is split evenly across cases; the timeout is shared by all cases of the run and excludes time spent waiting for answers.",
     "runningSince": "Started {at}, running for {minutes} minutes",
+    "acceptedWaiting": "Accepted, not started yet: waiting for the test computer",
+    "submittedAt": "Submitted {at}; press “Refresh result” to see whether it started",
     "refreshedAt": "Last refreshed {at}",
     "testingHint": "After a refresh the line above says which case and step it is on; a case shows up in the result below only when it has finished.",
     "spent": "Spent {amount} CNY",
@@ -223,6 +225,7 @@
     "showReport": "Show this draft’s result",
     "progressNow": "Where it is",
     "progressLine": "Running {case} (case {done}/{total}) · step {step}/{steps} {title} · try {attempt}",
-    "spentSoFar": "{amount} CNY spent so far"
+    "spentSoFar": "{amount} CNY spent so far",
+    "queuedLine": "{case} (case {done}/{total}) is queued behind an earlier task of the test account"
   }
 }

@@ -489,29 +489,43 @@ function DraftActions({
       </div>
     )
   if (stage === 'testing') {
-    const started = draft.run_started_at ? new Date(draft.run_started_at) : null
+    // 开跑时间以运行方的为准；运行方还没开跑（已受理）就照说，不拿提交时间冒充（账 136 第 ②）
+    const running = draft.run_running_since ? new Date(draft.run_running_since) : null
+    const submitted = draft.run_started_at ? new Date(draft.run_started_at) : null
+    const when = (at: Date) => format.dateTime(at, { dateStyle: 'short', timeStyle: 'short' })
+    const queued = draft.progress?.queued_behind
     return (
       <div className="space-y-3">
         <p>
-          {started
-            ? t('runningSince', {
-                at: format.dateTime(started, { dateStyle: 'short', timeStyle: 'short' }),
-                minutes: Math.max(0, Math.floor((now - started.getTime()) / 60_000)),
-              })
-            : t('stage.testing')}
+          {draft.run_status === 'accepted'
+            ? t('acceptedWaiting')
+            : running
+              ? t('runningSince', {
+                  at: when(running),
+                  minutes: Math.max(0, Math.floor((now - running.getTime()) / 60_000)),
+                })
+              : submitted
+                ? t('submittedAt', { at: when(submitted) })
+                : t('stage.testing')}
           {draft.run_attempts > 0 ? ` · ${t('attempts', { n: draft.run_attempts })}` : ''}
         </p>
         {draft.progress ? (
           <p className="font-medium" aria-label={t('progressNow')}>
-            {t('progressLine', {
-              case: draft.progress.case_id,
-              done: draft.progress.cases_done + 1,
-              total: draft.progress.cases_total,
-              step: draft.progress.step,
-              steps: draft.progress.steps_total,
-              title: draft.progress.step_title,
-              attempt: draft.progress.attempt,
-            })}
+            {queued
+              ? t('queuedLine', {
+                  case: draft.progress.case_id,
+                  done: draft.progress.cases_done + 1,
+                  total: draft.progress.cases_total,
+                })
+              : t('progressLine', {
+                  case: draft.progress.case_id,
+                  done: draft.progress.cases_done + 1,
+                  total: draft.progress.cases_total,
+                  step: draft.progress.step,
+                  steps: draft.progress.steps_total,
+                  title: draft.progress.step_title,
+                  attempt: draft.progress.attempt,
+                })}
             {' · '}
             {t('spentSoFar', {
               amount: format.number(Number(draft.progress.spent), { maximumFractionDigits: 2 }),
