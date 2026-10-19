@@ -16,6 +16,7 @@ import {
 
 import { OpenQuestions } from './open-questions'
 import { TestOutputs } from './outputs'
+import { Picker, rememberPick, type PickerGroup } from './picker'
 import {
   Amendments,
   Answered,
@@ -31,10 +32,8 @@ import {
 import {
   DRAFT_TODO,
   FIELD,
-  Filters,
   KEY,
   Progress,
-  Row,
   StageBadge,
   loadFailed,
   useFeedback,
@@ -49,21 +48,15 @@ import { SidePanel, type PanelTab } from './side-panel'
 // 分身（SDD 0037）：一个分身一生四段——孵化、核出处、测试、交付，都在这一页。
 // 孵化现在只有手工孵化（贴专家清单）；以后的辅助、自动孵化，出处表、缺口、清单候选各版都加进「孵化」这一块。
 
-const FILTERS = ['all', 'todo', 'testing', 'failed', 'delivered'] as const
-type Filter = (typeof FILTERS)[number]
+// 选择框里怎么分组：有问题等我们答的、要我们动手的在前，然后在跑的、做完的，最后是旧的（已有更新的分身）
+type Group = 'todo' | 'testing' | 'delivered' | 'history'
+const GROUPS: readonly Group[] = ['todo', 'testing', 'delivered', 'history']
 
-// 列表里谁排前面：有问题等我们答的、在跑的、要我们动手的，最后是做完的与旧的
-function rank(a: Avatar): number {
-  if (a.questions.some((q) => q.route !== 'user')) return 0
-  if (a.stage === 'testing') return 1
-  if (a.latest && DRAFT_TODO.includes(a.stage)) return 2
-  return a.latest ? 3 : 4
-}
-
-function matches(a: Avatar, filter: Filter): boolean {
-  if (filter === 'all') return true
-  if (filter === 'todo') return rank(a) === 0 || rank(a) === 2
-  return a.stage === filter
+function groupOf(a: Avatar): Group {
+  if (a.questions.some((q) => q.route !== 'user')) return 'todo'
+  if (!a.latest) return 'history'
+  if (DRAFT_TODO.includes(a.stage)) return 'todo'
+  return a.stage === 'testing' ? 'testing' : 'delivered'
 }
 
 const STEP_AT: Record<Stage, number> = {
@@ -90,120 +83,114 @@ export function AvatarsView({
   const t = useTranslations('knowbots')
   const { ideas, avatars, error, pending } = useKnowbots()
   const { failed, onError, onDone } = useFeedback()
-  const [filter, setFilter] = useState<Filter>('all')
   const [picked, setPicked] = useState<string | null>(initialPick ?? null)
   // 正在孵化哪个创意（null = 没在孵化）
   const [hatching, setHatching] = useState<string | null>(hatchFor ?? null)
 
-  const sorted = [...avatars].sort((a, b) => rank(a) - rank(b))
-  const shown = sorted.filter((a) => matches(a, filter))
-  const current = sorted.find((a) => a.draft.draft_id === picked) ?? shown[0] ?? sorted[0] ?? null
+  const label: Record<Group, string> = {
+    todo: t('filters.todo'),
+    testing: t('filters.testing'),
+    delivered: t('filters.delivered'),
+    history: t('groups.history'),
+  }
+  const groups: PickerGroup[] = GROUPS.map((g) => ({
+    key: g,
+    label: label[g],
+    items: avatars
+      .filter((a) => groupOf(a) === g)
+      .map((a) => ({
+        id: a.draft.draft_id,
+        title: `${t('draft', { version: a.draft.version, revision: a.draft.revision })} · ${a.draft.title}`,
+        sub: t('owner', { owner: a.draft.owner_subject }),
+        badge: <StageBadge stage={a.stage} />,
+        note: a.questions.length > 0 ? t('questionsWaiting', { n: a.questions.length }) : undefined,
+      })),
+  }))
+  // 没点名的：要我们动手的第一件，没有就最近的
+  const first = groups.flatMap((g) => g.items)[0]?.id
+  const current =
+    avatars.find((a) => a.draft.draft_id === picked) ??
+    avatars.find((a) => a.draft.draft_id === first) ??
+    null
+  const hatch = (requestId: string | null) => {
+    setHatching(requestId)
+    rememberPick({ hatch: requestId })
+  }
 
   return (
     <div className="mt-6 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        {failed ? (
-          <p className="text-destructive text-sm" role="alert">
-            {failed}
-          </p>
-        ) : (
-          <span />
-        )}
-        <button
-          type="button"
-          className="primary-button"
-          disabled={ideas.length === 0}
-          onClick={() =>
-            setHatching(current?.draft.request_id ?? ideas[0]?.request.request_id ?? null)
-          }
-        >
-          {t('hatch.button')}
-        </button>
-      </div>
+      {failed ? (
+        <p className="text-destructive text-sm" role="alert">
+          {failed}
+        </p>
+      ) : null}
       {error ? (
         <p className="text-destructive text-sm">{loadFailed(error, t)}</p>
       ) : pending ? (
         <p className="text-muted-foreground text-sm">{t('loading')}</p>
       ) : (
-        <div className="flex flex-col items-start gap-6 lg:flex-row">
-          <aside aria-label={t('avatarsTitle')} className="w-full space-y-3 lg:w-72 lg:shrink-0">
-            <Filters
-              filters={FILTERS}
-              value={filter}
-              onChange={setFilter}
-              count={(f) => sorted.filter((a) => matches(a, f)).length}
-              label={t('filter')}
-              name={(f) => t(`filters.${f}`)}
-            />
-            {shown.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                {avatars.length === 0 ? t('noAvatars') : t('noMatch')}
-              </p>
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            {avatars.length === 0 ? (
+              <p className="text-muted-foreground flex-1 text-sm">{t('noAvatars')}</p>
             ) : (
-              <ul className="space-y-2">
-                {shown.map((a) => (
-                  <li key={a.draft.draft_id}>
-                    <Row
-                      selected={!hatching && a.draft.draft_id === current?.draft.draft_id}
-                      onPick={() => {
-                        setHatching(null)
-                        setPicked(a.draft.draft_id)
-                      }}
-                    >
-                      <span className="flex items-start justify-between gap-2">
-                        <span className="font-medium">
-                          {t('draft', { version: a.draft.version, revision: a.draft.revision })}
-                        </span>
-                        <StageBadge stage={a.stage} />
-                      </span>
-                      <span className="text-muted-foreground mt-1 block truncate text-xs">
-                        {a.draft.title}
-                        {a.latest ? '' : ` · ${t('superseded')}`}
-                      </span>
-                      {a.questions.length > 0 ? (
-                        <span className="mt-0.5 block text-xs font-medium text-amber-700 dark:text-amber-400">
-                          {t('questionsWaiting', { n: a.questions.length })}
-                        </span>
-                      ) : null}
-                    </Row>
-                  </li>
-                ))}
-              </ul>
+              <Picker
+                label={t('avatarsTitle')}
+                groups={groups}
+                value={current?.draft.draft_id ?? null}
+                onPick={(id) => {
+                  setHatching(null)
+                  setPicked(id)
+                  rememberPick({ draft: id, hatch: null })
+                }}
+              />
             )}
-          </aside>
-          {hatching ? (
-            <Hatch
-              key={hatching}
-              ideas={ideas}
-              requestId={hatching}
-              onPick={setHatching}
-              onCancel={() => setHatching(null)}
-              onCreated={async (draftId) => {
-                await onDone()
-                setHatching(null)
-                setFilter('all')
-                setPicked(draftId)
-              }}
-              csrfToken={csrfToken}
-              canRelease={canRelease}
-              onDone={onDone}
-              onError={onError}
-            />
-          ) : current ? (
-            <Workspace
-              key={current.draft.draft_id}
-              avatar={current}
-              history={
-                ideas.find((i) => i.request.request_id === current.draft.request_id)?.drafts ?? []
+            <button
+              type="button"
+              className="primary-button"
+              disabled={ideas.length === 0}
+              onClick={() =>
+                hatch(current?.draft.request_id ?? ideas[0]?.request.request_id ?? null)
               }
-              onHatch={setHatching}
-              csrfToken={csrfToken}
-              canRelease={canRelease}
-              onDone={onDone}
-              onError={onError}
-            />
-          ) : null}
-        </div>
+            >
+              {t('hatch.button')}
+            </button>
+          </div>
+          <div className="flex flex-col items-start gap-6 lg:flex-row">
+            {hatching ? (
+              <Hatch
+                key={hatching}
+                ideas={ideas}
+                requestId={hatching}
+                onPick={hatch}
+                onCancel={() => hatch(null)}
+                onCreated={async (draftId) => {
+                  await onDone()
+                  setHatching(null)
+                  setPicked(draftId)
+                  rememberPick({ draft: draftId, hatch: null })
+                }}
+                csrfToken={csrfToken}
+                canRelease={canRelease}
+                onDone={onDone}
+                onError={onError}
+              />
+            ) : current ? (
+              <Workspace
+                key={current.draft.draft_id}
+                avatar={current}
+                history={
+                  ideas.find((i) => i.request.request_id === current.draft.request_id)?.drafts ?? []
+                }
+                onHatch={hatch}
+                csrfToken={csrfToken}
+                canRelease={canRelease}
+                onDone={onDone}
+                onError={onError}
+              />
+            ) : null}
+          </div>
+        </>
       )}
     </div>
   )

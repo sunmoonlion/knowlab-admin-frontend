@@ -461,7 +461,7 @@ describe('分身', () => {
     )
   })
 
-  it('lists avatars with what needs us first, filters them, and opens the one asked for', async () => {
+  it('picks avatars from the box at the top, grouped with what needs us first, and remembers the pick', async () => {
     const OTHER = '2b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10'
     const OTHER_DRAFT = '4b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10'
     vi.mocked(fetchRequests).mockResolvedValue([
@@ -482,18 +482,37 @@ describe('分身', () => {
       detail(id === OTHER ? { request_id: OTHER, title: '读我的表回答营收' } : {}),
     )
     renderPage()
-    const list = await screen.findByRole('complementary', { name: k.avatarsTitle })
-    const rows = within(list).getAllByRole('button', { name: /分身 1\.1/ })
-    expect(rows[0]).toHaveTextContent('财务分析与预测')
+    // 没有要我们动手的：先选在测的那个，左边不再有整列的列表
+    const box = await screen.findByRole('button', { name: k.avatarsTitle })
+    expect(box).toHaveTextContent('分身 1.1 · 财务分析与预测')
+    expect(screen.queryByRole('complementary', { name: k.avatarsTitle })).toBeNull()
     expect(screen.getByText('测试中：隔一阵点「刷新结果」')).toBeInTheDocument()
-    fireEvent.click(within(list).getByText('读我的表回答营收'))
+    fireEvent.click(box)
+    const groups = within(screen.getByRole('listbox', { name: k.avatarsTitle })).getAllByRole(
+      'group',
+    )
+    expect(groups.map((g) => g.getAttribute('aria-label'))).toEqual([
+      k.filters.testing,
+      k.filters.delivered,
+    ])
+    fireEvent.click(within(groups[1]).getByRole('option', { name: /读我的表回答营收/ }))
     expect(
       await screen.findByRole('heading', { level: 2, name: '分身 1.1 · 读我的表回答营收' }),
     ).toBeInTheDocument()
     expect(screen.getByText('已交付 knowmart，专家编号 kb-1')).toBeInTheDocument()
     expect(screen.queryByText('刷新结果')).toBeNull()
-    fireEvent.click(within(list).getByRole('button', { name: '测试中 · 1' }))
-    expect(within(list).queryByText('读我的表回答营收')).toBeNull()
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(new URLSearchParams(window.location.search).get('draft')).toBe(OTHER_DRAFT)
+    // 能打字搜
+    fireEvent.click(screen.getByRole('button', { name: k.avatarsTitle }))
+    fireEvent.change(screen.getByRole('searchbox', { name: k.picker.search }), {
+      target: { value: '财务' },
+    })
+    expect(screen.getAllByRole('option')).toHaveLength(1)
+    fireEvent.keyDown(screen.getByRole('searchbox', { name: k.picker.search }), { key: 'Enter' })
+    expect(
+      await screen.findByRole('heading', { level: 2, name: '分身 1.1 · 财务分析与预测' }),
+    ).toBeInTheDocument()
   })
 
   it('opens the avatar named in the link', async () => {
