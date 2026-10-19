@@ -209,6 +209,7 @@
       "cases": "验收用例",
       "datasets": "用户的数据",
       "rules": "规则出处",
+      "amendments": "补充方法",
       "answered": "答过的问题",
       "history": "历次草稿"
     },
@@ -221,11 +222,26 @@
     },
     "bindingsHint": "清单的 data_bindings 照这里写：",
     "noAnswered": "测试中还没有答过的问题。",
+    "noAmendments": "用户还没有写过补充。",
     "casesPassed": "用例通过 {met}/{total}",
     "showReport": "看这一稿的结果",
     "progressNow": "跑到哪了",
     "progressLine": "正在跑 {case}（第 {done}/{total} 条）· 第 {step}/{steps} 步 {title} · 这一步第 {attempt} 次",
     "spentSoFar": "到现在花了 {amount} 元",
-    "queuedLine": "{case}（第 {done}/{total} 条）在排队：排在测试账号前一个委托后面，等它结束"
+    "queuedLine": "{case}（第 {done}/{total} 条）在排队：排在测试账号前一个委托后面，等它结束",
+    "amendments": {
+      "title": "用户写的补充方法：每条要么用进下一稿的出处（ref 写下面那串），要么写理由不照做。",
+      "cite": "出处写：{ref}",
+      "status": {
+        "open": "待处理",
+        "used": "已用进第 {revision} 稿",
+        "declined": "没照做：{reason}"
+      },
+      "declinedBy": "（{who}）",
+      "reason": "不照做的理由（用户看得到）",
+      "decline": "不照做"
+    },
+    "reviewBlocked": "先处理这几条补充：用进这一稿的出处，或写理由不照做（页签「补充方法」）。",
+    "newerAmendments": "这一稿建好后用户又写了 {n} 条补充，下一稿处理。"
   }
 }

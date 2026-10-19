@@ -209,6 +209,7 @@
       "cases": "Acceptance cases",
       "datasets": "User data",
       "rules": "Rule sources",
+      "amendments": "Amendments",
       "answered": "Answered questions",
       "history": "Drafts"
     },
@@ -221,11 +222,26 @@
     },
     "bindingsHint": "Write the manifest’s data_bindings like this:",
     "noAnswered": "No questions answered during tests yet.",
+    "noAmendments": "The user has not written any amendment.",
     "casesPassed": "{met}/{total} cases passed",
     "showReport": "Show this draft’s result",
     "progressNow": "Where it is",
     "progressLine": "Running {case} (case {done}/{total}) · step {step}/{steps} {title} · try {attempt}",
     "spentSoFar": "{amount} CNY spent so far",
-    "queuedLine": "{case} (case {done}/{total}) is queued behind an earlier task of the test account"
+    "queuedLine": "{case} (case {done}/{total}) is queued behind an earlier task of the test account",
+    "amendments": {
+      "title": "Amendments the user wrote: cite each one in the next draft's rule sources (ref as shown below), or decline it with a reason.",
+      "cite": "Cite as: {ref}",
+      "status": {
+        "open": "waiting",
+        "used": "used in draft {revision}",
+        "declined": "not followed: {reason}"
+      },
+      "declinedBy": " ({who})",
+      "reason": "Why it is not followed (the user sees this)",
+      "decline": "Decline"
+    },
+    "reviewBlocked": "Handle these amendments first: cite them in this draft's rule sources, or decline them with a reason (tab “Amendments”).",
+    "newerAmendments": "The user wrote {n} more amendments after this draft was made; they go into the next draft."
   }
 }

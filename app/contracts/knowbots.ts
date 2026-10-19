@@ -72,6 +72,20 @@ const progressSchema = z
   })
   .strict()
 
+// 用户写的补充方法（SDD 0035）：用进出处（ref 写 amendment:<id>），或写理由不照做
+const amendmentSchema = z
+  .object({
+    amendment_id: z.string().uuid(),
+    text: z.string().min(1).max(4000),
+    created_at: z.string().nullable(),
+    status: z.enum(['open', 'used', 'declined']),
+    used_in_revision: z.number().int().min(1).nullable(),
+    declined_reason: z.string().max(500).nullable(),
+    declined_at: z.string().nullable(),
+    declined_by: z.string().max(512).nullable(),
+  })
+  .strict()
+
 const adminDraftSchema = z
   .object({
     ...draftForUser,
@@ -89,6 +103,9 @@ const adminDraftSchema = z
     progress: progressSchema.nullable().optional(),
     run_status: z.string().max(32).nullable().optional(),
     run_running_since: z.string().nullable().optional(),
+    // 核对出处前要处理的补充；这一稿建好后才写的条数（下一稿处理）。旧后端没有这两项
+    amendments_open: z.array(z.string().uuid()).max(200).optional(),
+    amendments_newer: z.number().int().min(0).optional(),
   })
   .strict()
 
@@ -104,6 +121,7 @@ const adminRequestSchema = z
     created_at: z.string().nullable(),
     owner_subject: z.string().min(1).max(512),
     drafts: z.array(z.object(draftForUser).strict()),
+    amendments: z.array(amendmentSchema).max(200).optional(),
   })
   .strict()
 
@@ -163,6 +181,7 @@ export const requestDetailSchema = z
         })
         .strict(),
     ),
+    amendments: z.array(amendmentSchema).max(200).optional(),
   })
   .strict()
 
@@ -213,3 +232,4 @@ export type AdminRequest = z.infer<typeof adminRequestSchema>
 export type RequestDetail = z.infer<typeof requestDetailSchema>
 export type CaseResult = z.infer<typeof caseResultSchema>
 export type Progress = z.infer<typeof progressSchema>
+export type Amendment = z.infer<typeof amendmentSchema>

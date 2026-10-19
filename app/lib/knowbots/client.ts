@@ -127,3 +127,16 @@ export async function questionToUser(questionId: string, csrfToken: string): Pro
     csrfToken,
   })
 }
+
+// 照不了的补充写理由不照做，用户看得到（SDD 0035）；只有 admin 能做
+export async function declineAmendment(
+  amendmentId: string,
+  reason: string,
+  csrfToken: string,
+): Promise<void> {
+  await requestJson(`/api/admin/v1/knowbot-amendments/${encodeURIComponent(amendmentId)}/decline`, {
+    method: 'POST',
+    csrfToken,
+    body: { reason },
+  })
+}

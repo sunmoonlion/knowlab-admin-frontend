@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import type {
   AdminDraft,
   AdminRequest,
+  Amendment,
   CaseResult,
   Question,
   RequestDetail,
@@ -14,6 +15,7 @@ import type {
 import { ApiClientError } from '@/lib/api/client'
 import {
   createDraft,
+  declineAmendment,
   draftAction,
   fetchDrafts,
   fetchQuestions,
@@ -345,7 +347,13 @@ function Workspace({ item, csrfToken, onDone, onError }: CardProps & { item: Ite
       ) : detail.isError ? (
         <p className="text-destructive text-sm">{loadFailed(detail.error, t)}</p>
       ) : (
-        <Reference detail={detail.data} drafts={item.drafts} />
+        <Reference
+          detail={detail.data}
+          drafts={item.drafts}
+          csrfToken={csrfToken}
+          onDone={onDone}
+          onError={onError}
+        />
       )}
     </section>
   )
@@ -440,15 +448,31 @@ function DraftActions({
   })
   const busy = act.isPending
 
+  // 建稿前用户写的补充还没处理：核对出处按不了，后端同样挡（SDD 0035 §二.5）
+  const blocking = draft.amendments_open ?? []
+  const newer = draft.amendments_newer ?? 0
+  const newerLine =
+    newer > 0 ? <p className="text-muted-foreground">{t('newerAmendments', { n: newer })}</p> : null
   if (stage === 'review')
     return (
       <div className="space-y-3">
         <p className="text-muted-foreground">{t('reviewHint')}</p>
         <RuleSources draft={draft} />
+        {blocking.length > 0 ? (
+          <div className="text-amber-800 dark:text-amber-300" role="status">
+            <p>{t('reviewBlocked')}</p>
+            <ul className="list-disc pl-5 font-mono text-xs">
+              {blocking.map((id) => (
+                <li key={id}>amendment:{id}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {newerLine}
         <button
           type="button"
           className="primary-button"
-          disabled={busy}
+          disabled={busy || blocking.length > 0}
           onClick={() => act.mutate('review')}
         >
           {t('review')}
@@ -462,6 +486,7 @@ function DraftActions({
           {t('reviewedBy', { who: draft.rules_reviewed_by ?? '' })}
           {draft.run_attempts > 0 ? ` · ${t('attempts', { n: draft.run_attempts })}` : ''}
         </p>
+        {newerLine}
         <div className="flex flex-wrap items-end gap-3">
           <label className="w-40">
             {t('budget')}
@@ -556,6 +581,7 @@ function DraftActions({
           ) : null}
         </div>
         <p className="text-muted-foreground text-xs">{t('testingHint')}</p>
+        {newerLine}
       </div>
     )
   }
@@ -722,11 +748,17 @@ function RuleSources({ draft }: { draft: AdminDraft }) {
   )
 }
 
-const TABS = ['method', 'cases', 'datasets', 'rules', 'answered', 'history'] as const
+const TABS = ['method', 'cases', 'datasets', 'rules', 'amendments', 'answered', 'history'] as const
 type Tab = (typeof TABS)[number]
 
 /** 要对照着看的东西：一次看一页，不往下堆。 */
-function Reference({ detail, drafts }: { detail: RequestDetail; drafts: AdminDraft[] }) {
+function Reference({
+  detail,
+  drafts,
+  csrfToken,
+  onDone,
+  onError,
+}: CardProps & { detail: RequestDetail; drafts: AdminDraft[] }) {
   const t = useTranslations('knowbots')
   const [tab, setTab] = useState<Tab>('method')
   const latest = drafts[0]
@@ -734,6 +766,7 @@ function Reference({ detail, drafts }: { detail: RequestDetail; drafts: AdminDra
     cases: detail.cases.length,
     datasets: detail.datasets.length,
     rules: latest?.rule_sources.length ?? 0,
+    amendments: detail.amendments?.length ?? 0,
     answered: detail.answered.length,
     history: drafts.length,
   }
@@ -780,6 +813,14 @@ function Reference({ detail, drafts }: { detail: RequestDetail; drafts: AdminDra
           ) : (
             <p className="text-muted-foreground">{t('noDraftYet')}</p>
           )
+        ) : null}
+        {tab === 'amendments' ? (
+          <Amendments
+            amendments={detail.amendments ?? []}
+            csrfToken={csrfToken}
+            onDone={onDone}
+            onError={onError}
+          />
         ) : null}
         {tab === 'answered' ? <Answered detail={detail} /> : null}
         {tab === 'history' ? <History drafts={drafts} /> : null}
@@ -894,6 +935,81 @@ function Datasets({ detail }: { detail: RequestDetail }) {
       <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs">
         {JSON.stringify(bindings, null, 2)}
       </pre>
+    </div>
+  )
+}
+
+/** 用户写的补充方法（SDD 0035）：每条要么用进下一稿的出处，要么写理由不照做。 */
+function Amendments({
+  amendments,
+  csrfToken,
+  onDone,
+  onError,
+}: CardProps & { amendments: Amendment[] }) {
+  const t = useTranslations('knowbots')
+  if (amendments.length === 0) return <p className="text-muted-foreground">{t('noAmendments')}</p>
+  return (
+    <div className="space-y-3">
+      <p className="text-muted-foreground">{t('amendments.title')}</p>
+      <ul className="divide-y">
+        {amendments.map((a) => (
+          <li key={a.amendment_id} className="space-y-1 py-2 first:pt-0 last:pb-0">
+            <p className="whitespace-pre-wrap">{a.text}</p>
+            <p className="text-muted-foreground text-xs">
+              {a.status === 'used'
+                ? t('amendments.status.used', { revision: a.used_in_revision ?? 0 })
+                : a.status === 'declined'
+                  ? t('amendments.status.declined', { reason: a.declined_reason ?? '' }) +
+                    (a.declined_by ? t('amendments.declinedBy', { who: a.declined_by }) : '')
+                  : t('amendments.status.open')}
+            </p>
+            {a.status !== 'declined' ? (
+              <p className="font-mono text-xs break-all">
+                {t('amendments.cite', { ref: `amendment:${a.amendment_id}` })}
+              </p>
+            ) : null}
+            {a.status === 'open' ? (
+              <Decline
+                amendmentId={a.amendment_id}
+                csrfToken={csrfToken}
+                onDone={onDone}
+                onError={onError}
+              />
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function Decline({ amendmentId, csrfToken, onDone, onError }: CardProps & { amendmentId: string }) {
+  const t = useTranslations('knowbots')
+  const [reason, setReason] = useState('')
+  const decline = useMutation({
+    mutationFn: () => declineAmendment(amendmentId, reason.trim(), csrfToken),
+    onSuccess: () => onDone(),
+    onError,
+  })
+  return (
+    <div className="flex flex-wrap items-end gap-2">
+      <label className="min-w-60 flex-1 text-xs">
+        {t('amendments.reason')}
+        <input
+          className={FIELD}
+          maxLength={500}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+      </label>
+      <button
+        type="button"
+        className="secondary-button"
+        disabled={decline.isPending || !reason.trim()}
+        onClick={() => decline.mutate()}
+      >
+        {t('amendments.decline')}
+      </button>
     </div>
   )
 }

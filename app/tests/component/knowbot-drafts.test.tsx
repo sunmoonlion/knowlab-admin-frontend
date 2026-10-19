@@ -9,6 +9,7 @@ import { ApiClientError } from '@/lib/api/client'
 import {
   answerQuestion,
   createDraft,
+  declineAmendment,
   fetchQuestions,
   questionTake,
   questionToUser,
@@ -27,6 +28,7 @@ vi.mock('@/lib/knowbots/client', () => ({
   questionTake: vi.fn(),
   questionToUser: vi.fn(),
   createDraft: vi.fn(),
+  declineAmendment: vi.fn(),
   draftAction: vi.fn(),
   fetchDrafts: vi.fn(),
   fetchRequestDetail: vi.fn(),
@@ -128,6 +130,7 @@ function renderPage() {
 beforeEach(() => {
   for (const fn of [
     createDraft,
+    declineAmendment,
     draftAction,
     fetchDrafts,
     fetchRequestDetail,
@@ -183,6 +186,59 @@ describe('专家草稿', () => {
       ),
     )
     expect(vi.mocked(fetchDrafts)).toHaveBeenCalledWith(null)
+  })
+
+  it('holds the review until every earlier amendment is cited or declined (SDD 0035)', async () => {
+    const OPEN = '4b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10'
+    const USED = '5b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10'
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({ amendments_open: [OPEN], amendments_newer: 1 }),
+    ])
+    vi.mocked(fetchRequestDetail).mockResolvedValue(
+      detail({
+        amendments: [
+          {
+            amendment_id: USED,
+            text: '第 6 步改成对照管理层讨论',
+            created_at: '2026-10-19T00:00:00Z',
+            status: 'used',
+            used_in_revision: 1,
+            declined_reason: null,
+            declined_at: null,
+            declined_by: null,
+          },
+          {
+            amendment_id: OPEN,
+            text: '给出买入建议',
+            created_at: '2026-10-19T00:00:00Z',
+            status: 'open',
+            used_in_revision: null,
+            declined_reason: null,
+            declined_at: null,
+            declined_by: null,
+          },
+        ],
+      }),
+    )
+    vi.mocked(declineAmendment).mockResolvedValue(undefined)
+    renderPage()
+    expect(await screen.findByText(messages.knowbots.reviewBlocked)).toBeInTheDocument()
+    expect(screen.getByText(`amendment:${OPEN}`)).toBeInTheDocument()
+    expect(screen.getByText('这一稿建好后用户又写了 1 条补充，下一稿处理。')).toBeInTheDocument()
+    expect(screen.getByText('已逐条核对出处')).toBeDisabled()
+
+    fireEvent.click(await screen.findByRole('tab', { name: /补充方法 · 2/ }))
+    expect(screen.getByText('已用进第 1 稿')).toBeInTheDocument()
+    expect(screen.getByText(`出处写：amendment:${USED}`)).toBeInTheDocument()
+    const decline = screen.getByRole('button', { name: '不照做' })
+    expect(decline).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('不照做的理由（用户看得到）'), {
+      target: { value: '平台不给买卖建议（C-L1）' },
+    })
+    fireEvent.click(decline)
+    await waitFor(() =>
+      expect(declineAmendment).toHaveBeenCalledWith(OPEN, '平台不给买卖建议（C-L1）', CSRF),
+    )
   })
 
   it('offers refresh and reset while testing, retry delivery when passed, and shows errors', async () => {
