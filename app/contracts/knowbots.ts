@@ -125,6 +125,9 @@ const adminRequestSchema = z
     owner_subject: z.string().min(1).max(512),
     drafts: z.array(z.object(draftForUser).strict()),
     amendments: z.array(amendmentSchema).max(200).optional(),
+    // 同意的是第几版测试数据说明、现行是第几版（SDD 0037）
+    consent_version: z.number().int().min(1).optional(),
+    consent_current: z.number().int().min(1).optional(),
   })
   .strict()
 
@@ -185,6 +188,8 @@ export const requestDetailSchema = z
         .strict(),
     ),
     amendments: z.array(amendmentSchema).max(200).optional(),
+    consent_version: z.number().int().min(1).optional(),
+    consent_current: z.number().int().min(1).optional(),
   })
   .strict()
 
@@ -266,7 +271,12 @@ const caseOutputsSchema = z
     run_id: z.string(),
     case_id: z.string().regex(CASE_ID),
     deliverable: z
-      .object({ path: z.string().max(1024), text: z.string(), truncated: z.boolean().optional() })
+      .object({
+        path: z.string().max(1024),
+        text: z.string(),
+        truncated: z.boolean().optional(),
+        step_id: z.string().max(128).nullable().optional(), // 哪一步写的
+      })
       .strict()
       .nullable()
       .optional(),
@@ -281,6 +291,8 @@ export const outputsSchema = z
     contract_version: z.literal(1),
     draft_id: z.string().uuid(),
     run_id: z.string().nullable(),
+    // 创意是在旧说明下同意的：产出不取不显示（审读 10-19）；旧后端没有
+    consent_needed: z.boolean().optional(),
     cases: z.array(
       z
         .object({

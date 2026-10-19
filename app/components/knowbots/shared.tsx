@@ -160,6 +160,7 @@ export type CardProps = {
   csrfToken: string
   onDone: () => Promise<unknown>
   onError: (error: unknown) => void
+  canRelease?: boolean // 是 admin（不照做、建稿这些只有 admin 能做）；没给当是
 }
 
 const TONE = {

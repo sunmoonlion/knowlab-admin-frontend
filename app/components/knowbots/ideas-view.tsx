@@ -49,9 +49,11 @@ function matches(idea: Idea, filter: Filter): boolean {
 export function IdeasView({
   csrfToken,
   picked: initialPick,
+  canRelease = true,
 }: {
   csrfToken: string
   picked?: string
+  canRelease?: boolean
 }) {
   const t = useTranslations('knowbots')
   const { ideas, error, pending } = useKnowbots()
@@ -131,6 +133,7 @@ export function IdeasView({
               key={current.request.request_id}
               idea={current}
               csrfToken={csrfToken}
+              canRelease={canRelease}
               onDone={onDone}
               onError={onError}
             />
@@ -161,8 +164,9 @@ function Workspace({ idea, ...props }: CardProps & { idea: Idea }) {
             {t('meta', { owner: request.owner_subject, runtime: request.runtime })}
           </p>
           <Progress
-            steps={['submit', 'test', 'expert'].map((s) => t(`ideaSteps.${s}`))}
-            at={stage === 'expert' ? 3 : 1}
+            steps={['submit', 'hatch', 'test', 'expert'].map((s) => t(`ideaSteps.${s}`))}
+            // 还没有分身：在孵化；有分身在测或没通过：在测试（没通过标红）；出了专家：都走完
+            at={stage === 'expert' ? 4 : latestStage === 'none' ? 1 : 2}
             bad={latestStage === 'failed'}
             label={t('progress')}
           />

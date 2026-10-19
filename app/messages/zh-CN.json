@@ -281,6 +281,7 @@
     },
     "ideaSteps": {
       "submit": "提交",
+      "hatch": "孵化",
       "test": "分身测试",
       "expert": "专家"
     },
@@ -327,7 +328,11 @@
       "omitted": "交回物太大没带（{bytes} 字节）",
       "raw": "最后一次交回的原文",
       "rejectedNoCheck": "交回的不是合格的 JSON，没判到验收。",
-      "error": "产出没取全：{error}"
+      "error": "产出没取全：{error}",
+      "fetchAgain": "补取产出",
+      "notYet": "还没取到：点「补取产出」再取一次。",
+      "consentNeeded": "这个创意是在旧的测试数据说明下提交的：用户在 web端同意新说明之前，测试产出不取、不显示。",
+      "fromStep": "第 {step} 步写的"
     },
     "experts": {
       "title": "专家",

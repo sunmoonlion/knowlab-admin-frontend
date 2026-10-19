@@ -269,7 +269,8 @@ export function Amendments({
   csrfToken,
   onDone,
   onError,
-}: CardProps & { amendments: Amendment[] }) {
+  canRelease = true,
+}: CardProps & { amendments: Amendment[]; canRelease?: boolean }) {
   const t = useTranslations('knowbots')
   if (amendments.length === 0) return <p className="text-muted-foreground">{t('noAmendments')}</p>
   return (
@@ -292,7 +293,8 @@ export function Amendments({
                 {t('amendments.cite', { ref: `amendment:${a.amendment_id}` })}
               </p>
             ) : null}
-            {a.status === 'open' ? (
+            {/* 不照做只有 admin 能做（SDD 0035 §二.6），运营不显示按钮，后端照样把关 */}
+            {a.status === 'open' && canRelease ? (
               <Decline
                 amendmentId={a.amendment_id}
                 csrfToken={csrfToken}

@@ -31,7 +31,11 @@ export default async function IdeasPage({
         <h1 className="text-2xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="text-muted-foreground mt-2">{t('intro')}</p>
       </div>
-      <IdeasView csrfToken={session.csrf_token} picked={one(query.request)} />
+      <IdeasView
+        csrfToken={session.csrf_token}
+        canRelease={session.user.roles.includes('admin')}
+        picked={one(query.request)}
+      />
     </div>
   )
 }

@@ -80,10 +80,12 @@ export function AvatarsView({
   csrfToken,
   picked: initialPick,
   hatchFor,
+  canRelease = true,
 }: {
   csrfToken: string
   picked?: string
   hatchFor?: string
+  canRelease?: boolean
 }) {
   const t = useTranslations('knowbots')
   const { ideas, avatars, error, pending } = useKnowbots()
@@ -183,6 +185,7 @@ export function AvatarsView({
                 setPicked(draftId)
               }}
               csrfToken={csrfToken}
+              canRelease={canRelease}
               onDone={onDone}
               onError={onError}
             />
@@ -195,6 +198,7 @@ export function AvatarsView({
               }
               onHatch={setHatching}
               csrfToken={csrfToken}
+              canRelease={canRelease}
               onDone={onDone}
               onError={onError}
             />
@@ -415,11 +419,11 @@ function Workspace({
         </header>
         {/* 没过：先看为什么没过、交回了什么，再孵化下一个 */}
         {stage === 'failed' && draft.report ? <Report draft={draft} /> : null}
-        {stage === 'failed' ? <TestOutputs draft={draft} /> : null}
+        {stage === 'failed' ? <TestOutputs draft={draft} {...props} /> : null}
         <NextStep avatar={avatar} onHatch={onHatch} {...props} />
         <OpenQuestions questions={questions} csrfToken={props.csrfToken} />
         {stage !== 'failed' && draft.report ? <Report draft={draft} /> : null}
-        {stage !== 'failed' ? <TestOutputs draft={draft} /> : null}
+        {stage !== 'failed' ? <TestOutputs draft={draft} {...props} /> : null}
         {detail.isError ? (
           <p className="text-destructive text-sm">{loadFailed(detail.error, t)}</p>
         ) : null}

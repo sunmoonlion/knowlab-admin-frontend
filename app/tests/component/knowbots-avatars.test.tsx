@@ -276,6 +276,59 @@ describe('分身', () => {
     expect(screen.getByLabelText(k.hatch.pick)).toHaveValue(REQUEST)
   })
 
+  it('a finished case not fetched yet can be fetched again; old consent hides outputs', async () => {
+    vi.mocked(fetchDrafts).mockResolvedValue([
+      draft({
+        status: 'failed',
+        rules_reviewed_by: 'admin-1',
+        run_id: 'r1',
+        report: {
+          status: 'failed',
+          cost: null,
+          finished_at: null,
+          cases: [
+            { case_id: 'c1', status: 'failed', steps: [], expectations: [], note: null },
+            { case_id: 'c2', status: 'passed', steps: [], expectations: [], note: null },
+          ],
+        },
+      }),
+    ])
+    vi.mocked(draftAction).mockResolvedValue(undefined)
+    const { unmount } = renderPage()
+    expect(await screen.findByText(k.outputs.notYet)).toBeInTheDocument() // c2 还没取到
+    fireEvent.click(screen.getByRole('button', { name: k.outputs.fetchAgain }))
+    await waitFor(() => expect(draftAction).toHaveBeenCalledWith(DRAFT, 'refresh', CSRF))
+    unmount()
+    vi.mocked(fetchOutputs).mockResolvedValue(outputs({ consent_needed: true, cases: [] }))
+    renderPage()
+    expect(await screen.findByText(k.outputs.consentNeeded)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: k.outputs.fetchAgain })).toBeNull()
+  })
+
+  it('an operator does not see the decline button (admin only)', async () => {
+    vi.mocked(fetchDrafts).mockResolvedValue([draft()])
+    vi.mocked(fetchRequestDetail).mockResolvedValue(
+      detail({
+        amendments: [
+          {
+            amendment_id: '4b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+            text: '第 6 步改成对照管理层讨论',
+            created_at: '2026-10-19T00:00:00Z',
+            status: 'open',
+            used_in_revision: null,
+            declined_reason: null,
+            declined_at: null,
+            declined_by: null,
+          },
+        ],
+      }),
+    )
+    renderWith(<AvatarsView csrfToken={CSRF} canRelease={false} />)
+    fireEvent.click(await screen.findByRole('tab', { name: /补充方法 · 1/ }))
+    expect(screen.getByText('第 6 步改成对照管理层讨论')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '不照做' })).toBeNull()
+  })
+
   it('a case without a write-up says why', async () => {
     vi.mocked(fetchDrafts).mockResolvedValue([
       draft({

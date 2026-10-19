@@ -281,6 +281,7 @@
     },
     "ideaSteps": {
       "submit": "Submitted",
+      "hatch": "Hatch",
       "test": "Avatar tests",
       "expert": "Expert"
     },
@@ -327,7 +328,11 @@
       "omitted": "Output too large to bring back ({bytes} bytes)",
       "raw": "Last reply as sent",
       "rejectedNoCheck": "The reply was not valid JSON, so no check ran.",
-      "error": "Outputs incomplete: {error}"
+      "error": "Outputs incomplete: {error}",
+      "fetchAgain": "Fetch outputs again",
+      "notYet": "Not fetched yet: press “Fetch outputs again”.",
+      "consentNeeded": "This idea was submitted under the old test-data notice: outputs are neither fetched nor shown until the user accepts the new notice on the web.",
+      "fromStep": "written by step {step}"
     },
     "experts": {
       "title": "Experts",

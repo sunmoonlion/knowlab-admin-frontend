@@ -33,6 +33,7 @@ export default async function AvatarsPage({
       </div>
       <AvatarsView
         csrfToken={session.csrf_token}
+        canRelease={session.user.roles.includes('admin')}
         picked={one(query.draft)}
         hatchFor={one(query.hatch)}
       />

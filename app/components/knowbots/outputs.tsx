@@ -1,14 +1,14 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useFormatter, useTranslations } from 'next-intl'
 
 import type { AdminDraft, CaseOutputs, StepOutput } from '@/contracts/knowbots'
-import { fetchOutputs } from '@/lib/knowbots/client'
+import { draftAction, fetchOutputs } from '@/lib/knowbots/client'
 import { cn } from '@/lib/utils'
 
 import { Markdown } from './markdown'
-import { KEY, loadFailed } from './shared'
+import { KEY, loadFailed, type CardProps } from './shared'
 
 // 每条用例的成稿与各步交回物（SDD 0037）：写清单的测试人员看了才验证得了这一稿
 // （所有者 2026-10-19「草稿毕竟要测试人员写啊，看不到成稿如何验证草稿」）。
@@ -24,48 +24,82 @@ const OUTCOME_TONE: Record<StepOutput['outcome'], string> = {
   not_reached: 'text-muted-foreground',
 }
 
-export function TestOutputs({ draft }: { draft: AdminDraft }) {
+export function TestOutputs({
+  draft,
+  csrfToken,
+  onDone,
+  onError,
+}: CardProps & { draft: AdminDraft }) {
   const t = useTranslations('knowbots.outputs')
   const tk = useTranslations('knowbots')
   const format = useFormatter()
-  const finished = (draft.report?.cases.length ?? 0) > 0
+  const finished = draft.report?.cases ?? []
   const outputs = useQuery({
-    queryKey: [...KEY, 'outputs', draft.draft_id, draft.report?.cases.length ?? 0],
+    queryKey: [...KEY, 'outputs', draft.draft_id, finished.length],
     queryFn: () => fetchOutputs(draft.draft_id),
-    enabled: Boolean(draft.run_id) && finished,
+    enabled: Boolean(draft.run_id) && finished.length > 0,
   })
-  if (!draft.run_id || !finished) return null
+  // 补取：刷新会为有结论、还没取到的用例再取一次，测完的分身也行（审读 10-19）
+  const fetchAgain = useMutation({
+    mutationFn: () => draftAction(draft.draft_id, 'refresh', csrfToken),
+    onSuccess: () => onDone(),
+    onError,
+  })
+  if (!draft.run_id || finished.length === 0) return null
+  const stored = new Map((outputs.data?.cases ?? []).map((c) => [c.case_id, c]))
+  const missing = finished.filter((c) => !stored.has(c.case_id))
   return (
     <section className="bg-card rounded-xl border p-4 text-sm shadow-sm" aria-label={t('title')}>
-      <h3 className="font-medium">{t('title')}</h3>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-medium">{t('title')}</h3>
+        {outputs.data && !outputs.data.consent_needed && missing.length > 0 ? (
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={fetchAgain.isPending}
+            onClick={() => fetchAgain.mutate()}
+          >
+            {t('fetchAgain')}
+          </button>
+        ) : null}
+      </div>
       {outputs.isPending ? (
         <p className="text-muted-foreground mt-2">{tk('loading')}</p>
       ) : outputs.isError ? (
         <p className="text-destructive mt-2">{loadFailed(outputs.error, tk)}</p>
-      ) : outputs.data.cases.length === 0 ? (
-        <p className="text-muted-foreground mt-2">{t('none')}</p>
+      ) : outputs.data.consent_needed ? (
+        <p className="mt-2 text-amber-800 dark:text-amber-300">{t('consentNeeded')}</p>
       ) : (
         <div className="mt-3 space-y-3">
-          {outputs.data.cases.map((c, i) => (
-            <details key={c.case_id} open={i === 0} className="rounded-lg border">
-              <summary className="cursor-pointer px-3 py-2">
-                <span className="font-mono">{c.case_id}</span>
-                {c.fetched_at ? (
-                  <span className="text-muted-foreground ml-2 text-xs">
-                    {t('fetchedAt', {
-                      at: format.dateTime(new Date(c.fetched_at), {
-                        dateStyle: 'short',
-                        timeStyle: 'short',
-                      }),
-                    })}
-                  </span>
-                ) : null}
-              </summary>
-              <div className="space-y-3 border-t px-3 py-3">
-                {c.outputs ? <CaseBody outputs={c.outputs} /> : <p>{c.note ?? t('none')}</p>}
-              </div>
-            </details>
-          ))}
+          {finished.map((r, i) => {
+            const c = stored.get(r.case_id)
+            return (
+              <details key={r.case_id} open={i === 0} className="rounded-lg border">
+                <summary className="cursor-pointer px-3 py-2">
+                  <span className="font-mono">{r.case_id}</span>
+                  {c?.fetched_at ? (
+                    <span className="text-muted-foreground ml-2 text-xs">
+                      {t('fetchedAt', {
+                        at: format.dateTime(new Date(c.fetched_at), {
+                          dateStyle: 'short',
+                          timeStyle: 'short',
+                        }),
+                      })}
+                    </span>
+                  ) : null}
+                </summary>
+                <div className="space-y-3 border-t px-3 py-3">
+                  {c?.outputs ? (
+                    <CaseBody outputs={c.outputs} />
+                  ) : c ? (
+                    <p>{c.note ?? t('none')}</p>
+                  ) : (
+                    <p className="text-muted-foreground">{t('notYet')}</p>
+                  )}
+                </div>
+              </details>
+            )
+          })}
         </div>
       )}
     </section>
@@ -83,8 +117,16 @@ function CaseBody({ outputs }: { outputs: CaseOutputs }) {
       <div>
         <h4 className="text-muted-foreground mb-1 text-xs">
           {t('deliverable')}
+          {outputs.deliverable?.step_id
+            ? ` · ${t('fromStep', { step: outputs.deliverable.step_id })}`
+            : ''}
           {outputs.deliverable ? ` · ${outputs.deliverable.path}` : ''}
         </h4>
+        {outputs.deliverable && outputs.deliverable_note ? (
+          <p className="mb-1 text-xs text-amber-700 dark:text-amber-400">
+            {outputs.deliverable_note}
+          </p>
+        ) : null}
         {outputs.deliverable ? (
           <div className="bg-background max-h-[70vh] overflow-y-auto rounded-md border p-3">
             {outputs.deliverable.truncated ? (
