@@ -7,11 +7,12 @@ import { useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { draftAction, fetchRequestDetail } from '@/lib/knowbots/client'
 
-import { Picker, rememberPick, type PickerGroup } from './picker'
 import { Method, Rules } from './reference'
 import {
   Badge,
+  Filters,
   KEY,
+  Row,
   loadFailed,
   useFeedback,
   useKnowbots,
@@ -23,42 +24,28 @@ import { SidePanel } from './side-panel'
 // 专家（SDD 0037）：测试通过、交付到 knowmart 的各版本；交付没成功的在这里重试。
 // 停用、删除另做（成品的状态机在 0027）。
 
-// 选择框里交付没成功的在前（要我们重试），然后是可用的
-const GROUPS = ['failed', 'live'] as const
+const FILTERS = ['live', 'failed'] as const
+type Filter = (typeof FILTERS)[number]
 
 function isExpert(a: Avatar): boolean {
   return a.stage === 'delivered' || a.stage === 'passed'
 }
 
-export function ExpertsView({
-  csrfToken,
-  picked: initialPick,
-}: {
-  csrfToken: string
-  picked?: string
-}) {
+function matches(a: Avatar, filter: Filter): boolean {
+  return filter === 'live' ? a.stage === 'delivered' : a.stage === 'passed'
+}
+
+export function ExpertsView({ csrfToken }: { csrfToken: string }) {
   const t = useTranslations('knowbots')
   const { avatars, error, pending } = useKnowbots()
   const { failed, onError, onDone } = useFeedback()
   const experts = avatars.filter(isExpert)
-  const [picked, setPicked] = useState<string | null>(initialPick ?? null)
-  const groups: PickerGroup[] = GROUPS.map((g) => ({
-    key: g,
-    label: t(`experts.filters.${g}`),
-    items: experts
-      .filter((a) => (g === 'live') === (a.stage === 'delivered'))
-      .map((a) => ({
-        id: a.draft.draft_id,
-        title: a.draft.name ?? a.draft.title,
-        sub: `${t('experts.version', { version: a.draft.version })} · ${t('owner', { owner: a.draft.owner_subject })}`,
-        badge: <Badge tone={g === 'live' ? 'good' : 'bad'}>{t(`experts.filters.${g}`)}</Badge>,
-      })),
-  }))
-  const first = groups.flatMap((g) => g.items)[0]?.id
-  const current =
-    experts.find((a) => a.draft.draft_id === picked) ??
-    experts.find((a) => a.draft.draft_id === first) ??
-    null
+  // 没选过：有交付没成功的先看那些
+  const [chosen, setFilter] = useState<Filter | null>(null)
+  const filter = chosen ?? (experts.some((a) => a.stage === 'passed') ? 'failed' : 'live')
+  const [picked, setPicked] = useState<string | null>(null)
+  const shown = experts.filter((a) => matches(a, filter))
+  const current = experts.find((a) => a.draft.draft_id === picked) ?? shown[0] ?? experts[0] ?? null
 
   return (
     <div className="mt-6 space-y-4">
@@ -74,29 +61,53 @@ export function ExpertsView({
       ) : experts.length === 0 ? (
         <p className="text-muted-foreground text-sm">{t('experts.none')}</p>
       ) : (
-        <>
-          <Picker
-            label={t('experts.title')}
-            groups={groups}
-            value={current?.draft.draft_id ?? null}
-            onPick={(id) => {
-              setPicked(id)
-              rememberPick({ draft: id })
-            }}
-          />
+        <div className="flex flex-col items-start gap-6 lg:flex-row">
+          <aside aria-label={t('experts.title')} className="w-full space-y-3 lg:w-72 lg:shrink-0">
+            <Filters
+              filters={FILTERS}
+              value={filter}
+              onChange={setFilter}
+              count={(f) => experts.filter((a) => matches(a, f)).length}
+              label={t('filter')}
+              name={(f) => t(`experts.filters.${f}`)}
+            />
+            {shown.length === 0 ? (
+              <p className="text-muted-foreground text-sm">{t('noMatch')}</p>
+            ) : (
+              <ul className="space-y-2">
+                {shown.map((a) => (
+                  <li key={a.draft.draft_id}>
+                    <Row
+                      selected={a.draft.draft_id === current?.draft.draft_id}
+                      onPick={() => setPicked(a.draft.draft_id)}
+                    >
+                      <span className="flex items-start justify-between gap-2">
+                        <span className="font-medium">{a.draft.name ?? a.draft.title}</span>
+                        <Badge tone={a.stage === 'delivered' ? 'good' : 'bad'}>
+                          {t(`experts.filters.${a.stage === 'delivered' ? 'live' : 'failed'}`)}
+                        </Badge>
+                      </span>
+                      <span className="text-muted-foreground mt-1 block truncate text-xs">
+                        {t('experts.version', { version: a.draft.version })} ·{' '}
+                        {t('owner', { owner: a.draft.owner_subject })}
+                      </span>
+                    </Row>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </aside>
           {current ? (
-            <div className="flex flex-col items-start gap-6 lg:flex-row">
-              <Workspace
-                key={current.draft.draft_id}
-                expert={current}
-                versions={experts.filter((a) => a.draft.request_id === current.draft.request_id)}
-                csrfToken={csrfToken}
-                onDone={onDone}
-                onError={onError}
-              />
-            </div>
+            <Workspace
+              key={current.draft.draft_id}
+              expert={current}
+              versions={experts.filter((a) => a.draft.request_id === current.draft.request_id)}
+              csrfToken={csrfToken}
+              onDone={onDone}
+              onError={onError}
+            />
           ) : null}
-        </>
+        </div>
       )}
     </div>
   )

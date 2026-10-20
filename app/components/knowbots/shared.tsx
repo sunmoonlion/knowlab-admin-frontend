@@ -239,3 +239,64 @@ export function Progress({
     </ol>
   )
 }
+
+/** 左边的筛选：每个筛选带条数。 */
+export function Filters<F extends string>({
+  filters,
+  value,
+  onChange,
+  count,
+  label,
+  name,
+}: {
+  filters: readonly F[]
+  value: F
+  onChange: (f: F) => void
+  count: (f: F) => number
+  label: string
+  name: (f: F) => string
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5" role="group" aria-label={label}>
+      {filters.map((f) => (
+        <button
+          key={f}
+          type="button"
+          aria-pressed={value === f}
+          onClick={() => onChange(f)}
+          className={cn(
+            'rounded-full border px-3 py-1 text-xs',
+            value === f ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent',
+          )}
+        >
+          {name(f)} · {count(f)}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** 列表里的一行。 */
+export function Row({
+  selected,
+  onPick,
+  children,
+}: {
+  selected: boolean
+  onPick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-current={selected ? 'true' : undefined}
+      onClick={onPick}
+      className={cn(
+        'bg-card w-full rounded-lg border p-3 text-left text-sm transition-colors',
+        selected ? 'border-primary ring-primary/30 ring-2' : 'hover:bg-accent',
+      )}
+    >
+      {children}
+    </button>
+  )
+}

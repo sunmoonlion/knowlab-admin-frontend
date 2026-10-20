@@ -84,6 +84,7 @@
     "noPermission": "当前账号没有管理权限（要 admin 或 operator 角色）。请退出，用管理员账号登录。",
     "actionFailed": "操作没成功（{code}）。",
     "requestsTitle": "用户的提交",
+    "filter": "按状态看",
     "noRequests": "还没有提交。",
     "noDraftYet": "还没有分身",
     "status": {
@@ -157,8 +158,10 @@
     "owner": "用户 {owner}",
     "questionsWaiting": "{n} 个问题待回答",
     "filters": {
+      "all": "全部",
       "todo": "要我们动手",
       "testing": "测试中",
+      "failed": "未通过",
       "delivered": "已交付"
     },
     "noMatch": "没有这一类的提交。",
@@ -264,6 +267,7 @@
     "copy": "复制",
     "copied": "已复制",
     "ideaFilters": {
+      "all": "全部",
       "todo": "要我们动手",
       "waiting": "等用户答",
       "expert": "已出专家"
@@ -297,13 +301,6 @@
       "hint": "现在只有手工孵化：清单在外面写好，贴进来校验后孵出。以后的辅助、自动孵化，出处表、缺口与用户的答复、清单候选各版，也放在这一块。",
       "cancel": "先不孵化",
       "next": "孵化下一个分身"
-    },
-    "picker": {
-      "search": "搜名字、用户",
-      "none": "选一个"
-    },
-    "groups": {
-      "history": "旧的分身（已有更新的）"
     },
     "side": {
       "expand": "展开对照材料",

@@ -71,16 +71,11 @@ describe('创意', () => {
     vi.mocked(fetchRequestDetail).mockResolvedValue(detail({ amendments: [amendment] }))
     vi.mocked(declineAmendment).mockResolvedValue(undefined)
     renderWith(<IdeasView csrfToken={CSRF} />)
-    // 页面顶上的选择框：要我们动手的在前，默认选它
-    const box = await screen.findByRole('button', { name: k.requestsTitle })
-    expect(box).toHaveTextContent('财务分析与预测')
-    fireEvent.click(box)
-    const options = screen.getAllByRole('option')
-    expect(options[0]).toHaveTextContent('财务分析与预测')
-    expect(options[0]).toHaveTextContent(k.ideaStage.amend)
-    expect(options[1]).toHaveTextContent(k.ideaStage.expert)
-    fireEvent.keyDown(screen.getByRole('searchbox', { name: k.picker.search }), { key: 'Escape' })
-    expect(screen.queryByRole('listbox')).toBeNull()
+    const list = await screen.findByRole('complementary', { name: k.requestsTitle })
+    const rows = within(list).getAllByRole('button', { name: /财务分析|读我的表/ })
+    expect(rows[0]).toHaveTextContent('财务分析与预测')
+    expect(rows[0]).toHaveTextContent(k.ideaStage.amend)
+    expect(rows[1]).toHaveTextContent(k.ideaStage.expert)
     expect(
       await screen.findByRole('heading', { level: 2, name: '财务分析与预测' }),
     ).toBeInTheDocument()
@@ -103,16 +98,8 @@ describe('创意', () => {
     await waitFor(() => expect(declineAmendment).toHaveBeenCalledWith(OPEN, '下一版再说', CSRF))
     // 方法原文在右边
     expect(screen.getByText('# 我的方法')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: k.requestsTitle }))
-    fireEvent.change(screen.getByRole('searchbox', { name: k.picker.search }), {
-      target: { value: '读我' },
-    })
-    expect(screen.getAllByRole('option')).toHaveLength(1)
-    fireEvent.click(screen.getByRole('option', { name: /读我的表回答营收/ }))
-    expect(
-      await screen.findByRole('heading', { level: 2, name: '读我的表回答营收' }),
-    ).toBeInTheDocument()
-    expect(new URLSearchParams(window.location.search).get('request')).toBe(OTHER)
+    fireEvent.click(within(list).getByRole('button', { name: `${k.ideaFilters.expert} · 1` }))
+    expect(within(list).queryByText('财务分析与预测')).toBeNull()
   })
 
   it('opens the idea named in the link', async () => {
@@ -157,8 +144,8 @@ describe('专家', () => {
         CSRF,
       ),
     )
-    fireEvent.click(screen.getByRole('button', { name: k.experts.title }))
-    fireEvent.click(screen.getByRole('option', { name: /第 1 版/ }))
+    fireEvent.click(screen.getByRole('button', { name: `${k.experts.filters.live} · 1` }))
+    fireEvent.click(await screen.findByRole('button', { name: /第 1 版/ }))
     expect(await screen.findByText('第 1 版 · knowmart 编号 kb-1')).toBeInTheDocument()
     expect(screen.getByText(/交付于/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '出自 分身 1.1' })).toHaveAttribute(

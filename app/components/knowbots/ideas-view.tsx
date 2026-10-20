@@ -8,13 +8,14 @@ import { Link } from '@/i18n/navigation'
 import { fetchRequestDetail } from '@/lib/knowbots/client'
 
 import { OpenQuestions } from './open-questions'
-import { Picker, rememberPick, type PickerGroup } from './picker'
 import { Amendments, Answered, Cases, Datasets, Method } from './reference'
 import {
   Badge,
+  Filters,
   IDEA_TONE,
   KEY,
   Progress,
+  Row,
   StageBadge,
   loadFailed,
   stageOf,
@@ -27,14 +28,9 @@ import { SidePanel } from './side-panel'
 
 // 创意（SDD 0037）：用户交来的方法、验收用例、数据，之后写的补充方法也挂在这里。
 // 这一页处理补充（用进出处或不照做）、看它孵化过哪些分身；孵化本身在分身页做。
-// 选哪个创意用页面顶上的选择框，中间整块是它的详情。
 
-type Group = 'todo' | 'waiting' | 'working' | 'expert'
-const GROUPS: readonly Group[] = ['todo', 'waiting', 'working', 'expert']
-
-function groupOf(idea: Idea): Group {
-  return idea.stage === 'amend' || idea.stage === 'hatch' ? 'todo' : idea.stage
-}
+const FILTERS = ['all', 'todo', 'waiting', 'expert'] as const
+type Filter = (typeof FILTERS)[number]
 
 const RANK: Record<Idea['stage'], number> = {
   amend: 0,
@@ -42,6 +38,12 @@ const RANK: Record<Idea['stage'], number> = {
   waiting: 2,
   working: 3,
   expert: 4,
+}
+
+function matches(idea: Idea, filter: Filter): boolean {
+  if (filter === 'all') return true
+  if (filter === 'todo') return idea.stage === 'amend' || idea.stage === 'hatch'
+  return idea.stage === filter
 }
 
 export function IdeasView({
@@ -56,40 +58,16 @@ export function IdeasView({
   const t = useTranslations('knowbots')
   const { ideas, error, pending } = useKnowbots()
   const { failed, onError, onDone } = useFeedback()
+  const [filter, setFilter] = useState<Filter>('all')
   const [picked, setPicked] = useState<string | null>(initialPick ?? null)
   const sorted = [...ideas].sort(
     (a, b) =>
       RANK[a.stage] - RANK[b.stage] ||
       (b.request.created_at ?? '').localeCompare(a.request.created_at ?? ''),
   )
-  const label: Record<Group, string> = {
-    todo: t('ideaFilters.todo'),
-    waiting: t('ideaFilters.waiting'),
-    working: t('ideaStage.working'),
-    expert: t('ideaFilters.expert'),
-  }
-  const groups: PickerGroup[] = GROUPS.map((g) => ({
-    key: g,
-    label: label[g],
-    items: sorted
-      .filter((i) => groupOf(i) === g)
-      .map((i) => ({
-        id: i.request.request_id,
-        title: i.request.title,
-        sub:
-          t('owner', { owner: i.request.owner_subject }) +
-          (i.latest
-            ? ` · ${t('draft', { version: i.latest.version, revision: i.latest.revision })} · ${t(`stage.${stageOf(i.latest)}`)}`
-            : ''),
-        badge: <Badge tone={IDEA_TONE[i.stage]}>{t(`ideaStage.${i.stage}`)}</Badge>,
-      })),
-  }))
-  // 没点名的：要我们动手的第一件，没有就最近的
-  const first = groups.flatMap((g) => g.items)[0]?.id
+  const shown = sorted.filter((i) => matches(i, filter))
   const current =
-    ideas.find((i) => i.request.request_id === picked) ??
-    ideas.find((i) => i.request.request_id === first) ??
-    null
+    sorted.find((i) => i.request.request_id === picked) ?? shown[0] ?? sorted[0] ?? null
 
   return (
     <div className="mt-6 space-y-4">
@@ -105,29 +83,62 @@ export function IdeasView({
       ) : ideas.length === 0 ? (
         <p className="text-muted-foreground text-sm">{t('noRequests')}</p>
       ) : (
-        <>
-          <Picker
-            label={t('requestsTitle')}
-            groups={groups}
-            value={current?.request.request_id ?? null}
-            onPick={(id) => {
-              setPicked(id)
-              rememberPick({ request: id })
-            }}
-          />
+        <div className="flex flex-col items-start gap-6 lg:flex-row">
+          <aside aria-label={t('requestsTitle')} className="w-full space-y-3 lg:w-72 lg:shrink-0">
+            <Filters
+              filters={FILTERS}
+              value={filter}
+              onChange={setFilter}
+              count={(f) => sorted.filter((i) => matches(i, f)).length}
+              label={t('filter')}
+              name={(f) => t(`ideaFilters.${f}`)}
+            />
+            {shown.length === 0 ? (
+              <p className="text-muted-foreground text-sm">{t('noMatch')}</p>
+            ) : (
+              <ul className="space-y-2">
+                {shown.map((idea) => (
+                  <li key={idea.request.request_id}>
+                    <Row
+                      selected={idea.request.request_id === current?.request.request_id}
+                      onPick={() => setPicked(idea.request.request_id)}
+                    >
+                      <span className="flex items-start justify-between gap-2">
+                        <span className="font-medium">{idea.request.title}</span>
+                        <Badge tone={IDEA_TONE[idea.stage]}>{t(`ideaStage.${idea.stage}`)}</Badge>
+                      </span>
+                      <span
+                        className="text-muted-foreground mt-1 block truncate text-xs"
+                        title={idea.request.owner_subject}
+                      >
+                        {t('owner', { owner: idea.request.owner_subject })}
+                      </span>
+                      {idea.latest ? (
+                        <span className="text-muted-foreground mt-0.5 block text-xs">
+                          {t('draft', {
+                            version: idea.latest.version,
+                            revision: idea.latest.revision,
+                          })}{' '}
+                          · {t(`stage.${stageOf(idea.latest)}`)}
+                        </span>
+                      ) : null}
+                    </Row>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </aside>
           {current ? (
-            <div className="flex flex-col items-start gap-6 lg:flex-row">
-              <Workspace
-                key={current.request.request_id}
-                idea={current}
-                csrfToken={csrfToken}
-                canRelease={canRelease}
-                onDone={onDone}
-                onError={onError}
-              />
-            </div>
+            <Workspace
+              key={current.request.request_id}
+              idea={current}
+              csrfToken={csrfToken}
+              canRelease={canRelease}
+              onDone={onDone}
+              onError={onError}
+            />
           ) : null}
-        </>
+        </div>
       )}
     </div>
   )

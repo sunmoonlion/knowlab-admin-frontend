@@ -84,6 +84,7 @@
     "noPermission": "This account has no admin rights (the admin or operator role is required). Sign out and sign in with an administrator account.",
     "actionFailed": "The action failed ({code}).",
     "requestsTitle": "Submissions",
+    "filter": "Status",
     "noRequests": "No submissions yet.",
     "noDraftYet": "No avatar yet",
     "status": {
@@ -157,8 +158,10 @@
     "owner": "User {owner}",
     "questionsWaiting": "{n} questions waiting",
     "filters": {
+      "all": "All",
       "todo": "Needs us",
       "testing": "Testing",
+      "failed": "Did not pass",
       "delivered": "Delivered"
     },
     "noMatch": "No submissions of this kind.",
@@ -264,6 +267,7 @@
     "copy": "Copy",
     "copied": "Copied",
     "ideaFilters": {
+      "all": "All",
       "todo": "Needs us",
       "waiting": "Waiting for the user",
       "expert": "Has an expert"
@@ -297,13 +301,6 @@
       "hint": "Only manual hatching exists for now: the manifest is written elsewhere, pasted here, checked and hatched. Assisted and automatic hatching, the source table, gaps with the user's answers and manifest candidates will go into this block later.",
       "cancel": "Not now",
       "next": "Hatch the next avatar"
-    },
-    "picker": {
-      "search": "Search by name or user",
-      "none": "Pick one"
-    },
-    "groups": {
-      "history": "Older avatars (superseded)"
     },
     "side": {
       "expand": "Expand reference",
