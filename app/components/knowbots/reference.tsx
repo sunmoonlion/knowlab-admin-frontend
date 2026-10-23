@@ -1,56 +1,62 @@
 'use client'
 
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useFormatter, useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import type { AdminDraft, Amendment, CaseResult, RequestDetail } from '@/contracts/knowbots'
-import { declineAmendment, fetchManifest } from '@/lib/knowbots/client'
+import type {
+  Acceptance,
+  Amendment,
+  Answered,
+  CaseResult,
+  Dataset,
+  Draft,
+  Idea,
+  Test,
+  Version,
+} from '@/contracts/knowbots'
+import { fetchManifest } from '@/lib/knowbots/client'
 import { cn } from '@/lib/utils'
 
-import { FIELD, KEY, loadFailed, type CardProps } from './shared'
+import { KEY, loadFailed, useWhen } from './shared'
 
-// 对照材料与测试报告：创意页、分身页、专家页的右边折叠栏和主栏共用（SDD 0037）。
+// 各过程的输入与输出怎么显示：四栏的过程页（输入）、右边栏（输出）、详情页共用（SDD 0037）。
 
-export function Report({ draft }: { draft: AdminDraft }) {
+/** 测试结果：每条用例过没过、没过的步与原因。 */
+export function Report({ test }: { test: Test }) {
   const t = useTranslations('knowbots')
   const format = useFormatter()
-  const report = draft.report
-  if (!report) return null
+  const report = test.report
+  if (!report) return <p className="text-muted-foreground">{t('noCaseYet')}</p>
   return (
-    <section className="bg-card rounded-xl border p-4 text-sm shadow-sm" aria-label={t('report')}>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-medium">
-          {t('report')} · {t('draft', { version: draft.version, revision: draft.revision })}
-        </h3>
-        <p className="text-muted-foreground text-xs">
-          {/* 跑着的时候结果里的花费只算跑完的用例（常是 0），不显示；跑到哪、花了多少看上面的进度 */}
-          {report.cost && report.finished_at
-            ? t('spent', {
-                amount: format.number(Number(report.cost.spent), { maximumFractionDigits: 2 }),
-              })
-            : null}
-          {report.cost && report.finished_at ? ' · ' : null}
-          {report.finished_at
-            ? t('finishedAt', {
-                at: format.dateTime(new Date(report.finished_at), {
-                  dateStyle: 'short',
-                  timeStyle: 'short',
-                }),
-              })
-            : null}
-        </p>
-      </div>
+    <div aria-label={t('report')}>
+      <p className="text-muted-foreground text-xs">
+        {/* 跑着的时候结果里的花费只算跑完的用例（常是 0），不显示 */}
+        {report.cost && report.finished_at
+          ? t('spent', {
+              amount: format.number(Number(report.cost.spent), { maximumFractionDigits: 2 }),
+            })
+          : null}
+        {report.cost && report.finished_at ? ' · ' : null}
+        {report.finished_at
+          ? t('finishedAt', {
+              at: format.dateTime(new Date(report.finished_at), {
+                dateStyle: 'short',
+                timeStyle: 'short',
+              }),
+            })
+          : null}
+      </p>
       {report.cases.length === 0 ? (
         <p className="text-muted-foreground mt-2">{t('noCaseYet')}</p>
       ) : (
-        <ul className="mt-3 divide-y" aria-label={t('report')}>
+        <ul className="mt-2 divide-y">
           {report.cases.map((c) => (
             <CaseLine key={c.case_id} c={c} />
           ))}
         </ul>
       )}
-    </section>
+    </div>
   )
 }
 
@@ -93,22 +99,9 @@ export function CaseLine({ c }: { c: CaseResult }) {
   )
 }
 
-export function RuleSources({ draft }: { draft: AdminDraft }) {
-  return (
-    <ol className="list-decimal space-y-1 pl-5">
-      {draft.rule_sources.map((s, i) => (
-        <li key={i}>
-          {s.rule} — {s.source}：{s.ref}
-        </li>
-      ))}
-    </ol>
-  )
-}
-
-/** 规则出处页签：谁核过，逐条出处。 */
-export function Rules({ draft }: { draft: AdminDraft | undefined }) {
+/** 规则出处：谁核过，逐条出处（出自创意第几版的哪一句）。 */
+export function Rules({ draft }: { draft: Draft }) {
   const t = useTranslations('knowbots')
-  if (!draft) return <p className="text-muted-foreground">{t('noDraftYet')}</p>
   return (
     <div className="space-y-2">
       <p className="text-muted-foreground">
@@ -116,7 +109,13 @@ export function Rules({ draft }: { draft: AdminDraft | undefined }) {
           ? t('reviewedBy', { who: draft.rules_reviewed_by })
           : t('notReviewed')}
       </p>
-      <RuleSources draft={draft} />
+      <ol className="list-decimal space-y-1 pl-5">
+        {draft.rule_sources.map((s, i) => (
+          <li key={i}>
+            {s.rule} — {s.source}：{s.ref}
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }
@@ -153,9 +152,8 @@ export function ManifestText({ draftId }: { draftId: string }) {
   )
 }
 
-export function Method({ detail }: { detail: RequestDetail }) {
+export function Method({ idea }: { idea: Idea }) {
   const t = useTranslations('knowbots')
-  const { idea } = detail
   if (idea.kind === 'skill')
     return (
       <pre className="bg-muted overflow-x-auto rounded-md p-3 whitespace-pre-wrap">
@@ -192,7 +190,7 @@ function caseShape(raw: Record<string, unknown>) {
   }
 }
 
-export function Cases({ cases }: { cases: RequestDetail['cases'] }) {
+export function Cases({ cases }: { cases: Record<string, unknown>[] }) {
   const t = useTranslations('knowbots')
   if (cases.length === 0) return <p className="text-muted-foreground">{t('noCases')}</p>
   return (
@@ -236,9 +234,53 @@ export function Cases({ cases }: { cases: RequestDetail['cases'] }) {
   )
 }
 
-export function Datasets({ detail }: { detail: RequestDetail }) {
+/** 创意的一个版本：方法与用例（受理、孵化时在过程页中间完整显示）。 */
+export function VersionBody({ version }: { version: Version }) {
   const t = useTranslations('knowbots')
-  const { datasets } = detail
+  return (
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-muted-foreground mb-1 text-xs">{t('tabs.method')}</h4>
+        <Method idea={version.idea} />
+      </div>
+      <div>
+        <h4 className="text-muted-foreground mb-1 text-xs">{t('tabs.cases')}</h4>
+        <Cases cases={version.cases} />
+      </div>
+    </div>
+  )
+}
+
+/** 受理单：三样各自的结论与说明、受理与否、理由、谁、何时。 */
+export function AcceptanceSheet({ acceptance }: { acceptance: Acceptance }) {
+  const t = useTranslations('knowbots')
+  const when = useWhen()
+  return (
+    <div className="space-y-2">
+      <p className="font-medium">
+        {acceptance.accepted ? t('acceptance.accepted') : t('acceptance.rejected')}
+        {acceptance.trial ? ` · ${t('acceptance.trial')}` : ''}
+      </p>
+      <ul className="space-y-1">
+        {Object.entries(acceptance.checks).map(([code, check]) => (
+          <li key={code}>
+            {check.ok ? '✓' : '✗'} {t(`acceptance.check.${code}` as never)}
+            {check.note ? `：${check.note}` : ''}
+          </li>
+        ))}
+      </ul>
+      {acceptance.reason ? (
+        <p>{t('acceptance.reasonLine', { reason: acceptance.reason })}</p>
+      ) : null}
+      <p className="text-muted-foreground text-xs">
+        {t('byAt', { who: acceptance.decided_by, at: when(acceptance.decided_at) })}
+      </p>
+    </div>
+  )
+}
+
+export function Datasets({ datasets }: { datasets: Dataset[] }) {
+  const t = useTranslations('knowbots')
   if (datasets.length === 0) return <p className="text-muted-foreground">{t('noDatasets')}</p>
   const bindings = datasets.map((d) => ({
     dataset_id: d.dataset_id,
@@ -263,18 +305,12 @@ export function Datasets({ detail }: { detail: RequestDetail }) {
   )
 }
 
-/** 用户写的补充方法（SDD 0035）：每条要么用进下一个分身的出处，要么写理由不照做。 */
-export function Amendments({
-  amendments,
-  csrfToken,
-  onDone,
-  onError,
-  canRelease = true,
-}: CardProps & { amendments: Amendment[]; canRelease?: boolean }) {
+/** 旧的补充方法（SDD 0035，已取消）：只读，出处照旧可查。 */
+export function Amendments({ amendments }: { amendments: Amendment[] }) {
   const t = useTranslations('knowbots')
-  if (amendments.length === 0) return <p className="text-muted-foreground">{t('noAmendments')}</p>
+  if (amendments.length === 0) return null
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <p className="text-muted-foreground">{t('amendments.title')}</p>
       <ul className="divide-y">
         {amendments.map((a) => (
@@ -284,24 +320,10 @@ export function Amendments({
               {a.status === 'used'
                 ? t('amendments.status.used', { revision: a.used_in_revision ?? 0 })
                 : a.status === 'declined'
-                  ? t('amendments.status.declined', { reason: a.declined_reason ?? '' }) +
-                    (a.declined_by ? t('amendments.declinedBy', { who: a.declined_by }) : '')
+                  ? t('amendments.status.declined', { reason: a.declined_reason ?? '' })
                   : t('amendments.status.open')}
             </p>
-            {a.status !== 'declined' ? (
-              <p className="font-mono text-xs break-all">
-                {t('amendments.cite', { ref: `amendment:${a.amendment_id}` })}
-              </p>
-            ) : null}
-            {/* 不照做只有 admin 能做（SDD 0035 §二.6），运营不显示按钮，后端照样把关 */}
-            {a.status === 'open' && canRelease ? (
-              <Decline
-                amendmentId={a.amendment_id}
-                csrfToken={csrfToken}
-                onDone={onDone}
-                onError={onError}
-              />
-            ) : null}
+            <p className="font-mono text-xs break-all">amendment:{a.amendment_id}</p>
           </li>
         ))}
       </ul>
@@ -309,46 +331,14 @@ export function Amendments({
   )
 }
 
-function Decline({ amendmentId, csrfToken, onDone, onError }: CardProps & { amendmentId: string }) {
+export function AnsweredList({ answered }: { answered: Answered[] }) {
   const t = useTranslations('knowbots')
-  const [reason, setReason] = useState('')
-  const decline = useMutation({
-    mutationFn: () => declineAmendment(amendmentId, reason.trim(), csrfToken),
-    onSuccess: () => onDone(),
-    onError,
-  })
-  return (
-    <div className="flex flex-wrap items-end gap-2">
-      <label className="min-w-60 flex-1 text-xs">
-        {t('amendments.reason')}
-        <input
-          className={FIELD}
-          maxLength={500}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        />
-      </label>
-      <button
-        type="button"
-        className="secondary-button"
-        disabled={decline.isPending || !reason.trim()}
-        onClick={() => decline.mutate()}
-      >
-        {t('amendments.decline')}
-      </button>
-    </div>
-  )
-}
-
-export function Answered({ detail }: { detail: RequestDetail }) {
-  const t = useTranslations('knowbots')
-  if (detail.answered.length === 0)
-    return <p className="text-muted-foreground">{t('noAnswered')}</p>
+  if (answered.length === 0) return <p className="text-muted-foreground">{t('noAnswered')}</p>
   return (
     <div className="space-y-2">
       <p className="text-muted-foreground">{t('answeredTitle')}</p>
       <ul className="space-y-1">
-        {detail.answered.map((a) => (
+        {answered.map((a) => (
           <li key={a.question_id}>
             {a.text} → {a.answer?.text ?? a.answer?.option_id ?? a.answer?.decision} ·{' '}
             {a.answered_by === 'user'
@@ -360,41 +350,5 @@ export function Answered({ detail }: { detail: RequestDetail }) {
         ))}
       </ul>
     </div>
-  )
-}
-
-export function History({ drafts }: { drafts: AdminDraft[] }) {
-  const t = useTranslations('knowbots')
-  if (drafts.length === 0) return <p className="text-muted-foreground">{t('noDraftYet')}</p>
-  return (
-    <ul className="divide-y">
-      {drafts.map((d) => {
-        const cases = d.report?.cases ?? []
-        return (
-          <li key={d.draft_id} className="py-2 first:pt-0 last:pb-0">
-            <p>
-              {t('draft', { version: d.version, revision: d.revision })} · {t(`status.${d.status}`)}
-              {d.run_attempts > 0 ? ` · ${t('attempts', { n: d.run_attempts })}` : ''}
-              {cases.length > 0
-                ? ` · ${t('casesPassed', { met: cases.filter((c) => c.status === 'passed').length, total: cases.length })}`
-                : ''}
-            </p>
-            {d.last_error ? <p className="text-destructive text-xs">{d.last_error}</p> : null}
-            {cases.length > 0 ? (
-              <details className="mt-1">
-                <summary className="text-muted-foreground cursor-pointer text-xs">
-                  {t('showReport')}
-                </summary>
-                <ul className="mt-1 divide-y">
-                  {cases.map((c) => (
-                    <CaseLine key={c.case_id} c={c} />
-                  ))}
-                </ul>
-              </details>
-            ) : null}
-          </li>
-        )
-      })}
-    </ul>
   )
 }

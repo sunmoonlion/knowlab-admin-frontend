@@ -1,15 +1,16 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useTranslations } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import type { AdminDraft, AdminRequest, Question } from '@/contracts/knowbots'
+import type { ExpertStage, TestStatus } from '@/contracts/knowbots'
+import { Link } from '@/i18n/navigation'
 import { ApiClientError } from '@/lib/api/client'
-import { fetchDrafts, fetchQuestions, fetchRequests } from '@/lib/knowbots/client'
+import { fetchCounts } from '@/lib/knowbots/client'
 import { cn } from '@/lib/utils'
 
-// 创意、分身、专家三页共用（SDD 0037）：同一份数据（创意、分身、待回答的问题），各页按自己的事排。
+// 受理、孵化、测试、交付四栏与详情页共用（SDD 0037 第七、第九节）。
 export const FIELD = 'mt-1 w-full rounded-md border px-3 py-2 text-sm'
 export const KEY = ['admin', 'knowbots'] as const
 
@@ -26,119 +27,13 @@ export function loadFailed(error: unknown, t: Translate): string {
     : t('loadFailed')
 }
 
-// 一个分身走到哪：待核出处、待发起、测试中、没过、过了待交付、已交付（孵化中的等孵化记录做出来再有）
-export type Stage = 'none' | 'review' | 'start' | 'testing' | 'failed' | 'passed' | 'delivered'
-
-export function stageOf(draft: AdminDraft | undefined): Stage {
-  if (!draft) return 'none'
-  if (draft.status === 'pending_test') return draft.rules_reviewed_by ? 'start' : 'review'
-  return draft.status === 'testing'
-    ? 'testing'
-    : draft.status === 'failed'
-      ? 'failed'
-      : draft.status === 'passed'
-        ? 'passed'
-        : 'delivered'
+/** 左边栏旁的数：每栏「等我们」的条数。没有这几栏权限的账号取不到，就不显示。 */
+export function useCounts(enabled: boolean) {
+  const counts = useQuery({ queryKey: [...KEY, 'counts'], queryFn: fetchCounts, enabled })
+  return enabled && counts.data ? counts.data : null
 }
 
-export function newestFirst(a: AdminDraft, b: AdminDraft): number {
-  return Number(b.version) - Number(a.version) || b.revision - a.revision
-}
-
-// 一个创意走到哪（管理端的视角：下一步该谁做什么）
-export type IdeaStage = 'amend' | 'hatch' | 'waiting' | 'working' | 'expert'
-
-export type Idea = {
-  request: AdminRequest
-  drafts: AdminDraft[] // 新的在前
-  latest: AdminDraft | undefined
-  stage: IdeaStage
-  questions: Question[]
-}
-
-export type Avatar = {
-  draft: AdminDraft
-  request: AdminRequest | undefined
-  stage: Stage
-  latest: boolean // 是这个创意最新的分身（旧的只是历史）
-  questions: Question[]
-}
-
-function ideaStageOf(request: AdminRequest, latest: AdminDraft | undefined, asks: Question[]) {
-  if ((request.amendments ?? []).some((a) => a.status === 'open')) return 'amend'
-  const stage = stageOf(latest)
-  if (stage === 'none' || stage === 'failed') return 'hatch'
-  if (asks.some((q) => q.route === 'user')) return 'waiting'
-  return stage === 'delivered' ? 'expert' : 'working'
-}
-
-export const DRAFT_TODO: readonly Stage[] = ['review', 'start', 'passed', 'failed']
-
-/** 三页共用的数据：创意、分身、问题。查询键相同，切页不重复取。 */
-export function useKnowbots(enabled = true) {
-  const requests = useQuery({ queryKey: [...KEY, 'requests'], queryFn: fetchRequests, enabled })
-  const drafts = useQuery({
-    queryKey: [...KEY, 'drafts'],
-    queryFn: () => fetchDrafts(null),
-    enabled,
-  })
-  const questions = useQuery({ queryKey: [...KEY, 'questions'], queryFn: fetchQuestions, enabled })
-  const asks = questions.data ?? []
-  const ideas: Idea[] = []
-  const avatars: Avatar[] = []
-  if (requests.data && drafts.data) {
-    for (const request of requests.data) {
-      const mine = drafts.data.filter((d) => d.request_id === request.request_id)
-      mine.sort(newestFirst)
-      const ids = new Set(mine.map((d) => d.draft_id))
-      const theirs = asks.filter((q) => ids.has(q.draft_id))
-      ideas.push({
-        request,
-        drafts: mine,
-        latest: mine[0],
-        stage: ideaStageOf(request, mine[0], theirs),
-        questions: theirs,
-      })
-    }
-    const byId = new Map(requests.data.map((r) => [r.request_id, r]))
-    const latestOf = new Map(ideas.map((i) => [i.request.request_id, i.latest?.draft_id]))
-    for (const draft of [...drafts.data].sort(newestFirst)) {
-      avatars.push({
-        draft,
-        request: byId.get(draft.request_id),
-        stage: stageOf(draft),
-        latest: latestOf.get(draft.request_id) === draft.draft_id,
-        questions: asks.filter((q) => q.draft_id === draft.draft_id),
-      })
-    }
-  }
-  return {
-    ideas,
-    avatars,
-    error: requests.error ?? drafts.error,
-    pending: requests.isPending || drafts.isPending,
-  }
-}
-
-/** 要我们动手的条数：导航栏与治理控制台用（SDD 0037）。 */
-export function todoCounts(ideas: Idea[], avatars: Avatar[]) {
-  return {
-    ideas: ideas.filter((i) => i.stage === 'amend' || i.stage === 'hatch').length,
-    avatars: avatars.filter(
-      (a) =>
-        (a.latest && DRAFT_TODO.includes(a.stage)) || a.questions.some((q) => q.route !== 'user'),
-    ).length,
-    experts: avatars.filter((a) => a.stage === 'passed' && a.draft.last_error).length,
-  }
-}
-
-/** 导航栏上的数：只有能进这三栏的角色才去取（取不到就不显示）。 */
-export function useTodoCounts(enabled: boolean) {
-  const { ideas, avatars, error, pending } = useKnowbots(enabled)
-  return enabled && !error && !pending ? todoCounts(ideas, avatars) : null
-}
-
-/** 动作的结果：成了刷新三页共用的数据，没成说为什么（运营点了只有 admin 能做的要说清楚）。 */
+/** 动作的结果：成了刷新四栏共用的数据，没成说为什么（没有 knowlab:release 的要说清楚）。 */
 export function useFeedback() {
   const t = useTranslations('knowbots')
   const queryClient = useQueryClient()
@@ -160,7 +55,13 @@ export type CardProps = {
   csrfToken: string
   onDone: () => Promise<unknown>
   onError: (error: unknown) => void
-  canRelease?: boolean // 能建稿、不照做、交付这些（现在 admin、operator 都能，见 lib/server/auth-session）；没给当是
+}
+
+/** 时间写成「短日期 短时刻」；没有写一横。 */
+export function useWhen() {
+  const format = useFormatter()
+  return (value: string | null | undefined) =>
+    value ? format.dateTime(new Date(value), { dateStyle: 'short', timeStyle: 'short' }) : '—'
 }
 
 const TONE = {
@@ -171,25 +72,29 @@ const TONE = {
   good: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200',
 } as const
 
-export const STAGE_TONE: Record<Stage, keyof typeof TONE> = {
-  none: 'muted',
-  review: 'todo',
-  start: 'todo',
-  testing: 'running',
+export type Tone = keyof typeof TONE
+
+export const TEST_TONE: Record<TestStatus, Tone> = {
+  queued: 'running',
+  running: 'running',
+  waiting: 'todo',
+  passed: 'good',
   failed: 'bad',
-  passed: 'todo',
-  delivered: 'good',
+  platform_error: 'muted',
 }
 
-export const IDEA_TONE: Record<IdeaStage, keyof typeof TONE> = {
-  amend: 'todo',
-  hatch: 'todo',
-  waiting: 'running',
-  working: 'running',
-  expert: 'good',
+export const EXPERT_TONE: Record<ExpertStage, Tone> = {
+  to_return: 'todo',
+  awaiting_user: 'running',
+  declined: 'muted',
+  to_review: 'todo',
+  rejected: 'bad',
+  to_deliver: 'todo',
+  listed: 'good',
+  stopped: 'muted',
 }
 
-export function Badge({ tone, children }: { tone: keyof typeof TONE; children: React.ReactNode }) {
+export function Badge({ tone, children }: { tone: Tone; children: React.ReactNode }) {
   return (
     <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs whitespace-nowrap', TONE[tone])}>
       {children}
@@ -197,50 +102,7 @@ export function Badge({ tone, children }: { tone: keyof typeof TONE; children: R
   )
 }
 
-export function StageBadge({ stage }: { stage: Stage }) {
-  const t = useTranslations('knowbots')
-  return <Badge tone={STAGE_TONE[stage]}>{t(`stage.${stage}`)}</Badge>
-}
-
-/** 一串步骤，走到第 at 步（从 0 起）；bad 时当前那一步标红。 */
-export function Progress({
-  steps,
-  at,
-  bad,
-  label,
-}: {
-  steps: readonly string[]
-  at: number
-  bad?: boolean
-  label: string
-}) {
-  return (
-    <ol className="flex flex-wrap gap-x-1 gap-y-2 text-xs" aria-label={label}>
-      {steps.map((s, i) => (
-        <li key={s} className="flex items-center gap-1">
-          <span
-            aria-current={i === at ? 'step' : undefined}
-            className={cn(
-              'rounded-full border px-2.5 py-1',
-              i < at && 'border-emerald-300 text-emerald-800 dark:text-emerald-300',
-              i === at &&
-                (bad
-                  ? 'border-red-400 font-medium text-red-800 dark:text-red-300'
-                  : 'border-primary bg-primary text-primary-foreground font-medium'),
-              i > at && 'text-muted-foreground',
-            )}
-          >
-            {i < at ? '✓ ' : ''}
-            {s}
-          </span>
-          {i < steps.length - 1 ? <span className="text-muted-foreground">→</span> : null}
-        </li>
-      ))}
-    </ol>
-  )
-}
-
-/** 左边的筛选：每个筛选带条数。 */
+/** 大类：每类带条数。 */
 export function Filters<F extends string>({
   filters,
   value,
@@ -298,5 +160,156 @@ export function Row({
     >
       {children}
     </button>
+  )
+}
+
+/** 过程页里的一张卡片：标题、内容。 */
+export function Card({
+  title,
+  children,
+  className,
+}: {
+  title?: React.ReactNode
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <section className={cn('bg-card rounded-xl border p-4 text-sm shadow-sm', className)}>
+      {title ? <h3 className="mb-2 font-medium">{title}</h3> : null}
+      {children}
+    </section>
+  )
+}
+
+/**
+ * 一栏的样子：左边大类与列表（都是过程），中间是选中那一条的过程页，右边栏放这个过程的输出。
+ * 输入在过程页中间完整显示（SDD 0037 第二节第 1 条）。从详情页点进来带着 picked：先落在它
+ * 所在的大类。
+ */
+export function ColumnLayout<F extends string, I>({
+  title,
+  filters,
+  defaultFilter,
+  initialFilter,
+  items,
+  categoryOf,
+  keyOf,
+  picked,
+  onPick,
+  renderRow,
+  empty,
+  children,
+  error,
+  pending,
+  failed,
+  actions,
+}: {
+  title: string
+  filters: readonly F[]
+  defaultFilter: F
+  initialFilter?: F
+  items: I[]
+  categoryOf: (item: I) => F[]
+  keyOf: (item: I) => string
+  picked: string | null
+  onPick: (key: string) => void
+  renderRow: (item: I) => React.ReactNode
+  empty: string
+  children: (current: I | null) => React.ReactNode
+  error: unknown
+  pending: boolean
+  failed: string | null
+  actions?: React.ReactNode
+}) {
+  const t = useTranslations('knowbots')
+  const [chosen, setChosen] = useState<F | null>(null)
+  const pickedItem = items.find((item) => keyOf(item) === picked)
+  const filter =
+    chosen ??
+    initialFilter ??
+    (pickedItem ? categoryOf(pickedItem).find((f) => filters.includes(f)) : undefined) ??
+    defaultFilter
+  const shown = items.filter((item) => categoryOf(item).includes(filter))
+  const current =
+    (pickedItem && categoryOf(pickedItem).includes(filter) ? pickedItem : null) ?? shown[0] ?? null
+  return (
+    <div className="mt-6 space-y-4">
+      {failed || actions ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {failed ? (
+            <p className="text-destructive text-sm" role="alert">
+              {failed}
+            </p>
+          ) : (
+            <span />
+          )}
+          {actions}
+        </div>
+      ) : null}
+      {error ? (
+        <p className="text-destructive text-sm">{loadFailed(error, t)}</p>
+      ) : pending ? (
+        <p className="text-muted-foreground text-sm">{t('loading')}</p>
+      ) : (
+        <div className="flex flex-col items-start gap-6 lg:flex-row">
+          <aside aria-label={title} className="w-full space-y-3 lg:w-72 lg:shrink-0">
+            <Filters
+              filters={filters}
+              value={filter}
+              onChange={setChosen}
+              count={(f) => items.filter((item) => categoryOf(item).includes(f)).length}
+              label={t('category')}
+              name={(f) => t(`categories.${f}` as never)}
+            />
+            {shown.length === 0 ? (
+              <p className="text-muted-foreground text-sm">{empty}</p>
+            ) : (
+              <ul className="space-y-2">
+                {shown.map((item) => (
+                  <li key={keyOf(item)}>
+                    <Row
+                      selected={current !== null && keyOf(item) === keyOf(current)}
+                      onPick={() => onPick(keyOf(item))}
+                    >
+                      {renderRow(item)}
+                    </Row>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </aside>
+          {children(current)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** 过程页顶上：标题、徽标、这个名称的详情页链接。 */
+export function ProcessHeader({
+  title,
+  badge,
+  requestId,
+  owner,
+}: {
+  title: React.ReactNode
+  badge?: React.ReactNode
+  requestId: string
+  owner: string
+}) {
+  const t = useTranslations('knowbots')
+  return (
+    <header className="space-y-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {badge}
+      </div>
+      <p className="text-muted-foreground text-sm break-all">
+        {t('owner', { owner })} ·{' '}
+        <Link href={`/names/${requestId}`} className="underline underline-offset-2">
+          {t('toName')}
+        </Link>
+      </p>
+    </header>
   )
 }

@@ -3,14 +3,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useFormatter, useTranslations } from 'next-intl'
 
-import type { AdminDraft, CaseOutputs, StepOutput } from '@/contracts/knowbots'
-import { draftAction, fetchOutputs } from '@/lib/knowbots/client'
+import type { CaseOutputs, StepOutput, Test } from '@/contracts/knowbots'
+import { fetchOutputs, testAction } from '@/lib/knowbots/client'
 import { cn } from '@/lib/utils'
 
 import { Markdown } from './markdown'
 import { KEY, loadFailed, type CardProps } from './shared'
 
-// 每条用例的成稿与各步交回物（SDD 0037）：写清单的测试人员看了才验证得了这一稿
+// 一次测试每条用例的成稿与各步交回物（SDD 0037）：写清单的测试人员看了才验证得了这一稿
 // （所有者 2026-10-19「草稿毕竟要测试人员写啊，看不到成稿如何验证草稿」）。
 // 用例跑完、刷新结果后才有；没过的那一步给最后一次交回的原文和没过的验收。
 
@@ -24,28 +24,23 @@ const OUTCOME_TONE: Record<StepOutput['outcome'], string> = {
   not_reached: 'text-muted-foreground',
 }
 
-export function TestOutputs({
-  draft,
-  csrfToken,
-  onDone,
-  onError,
-}: CardProps & { draft: AdminDraft }) {
+export function TestOutputs({ test, csrfToken, onDone, onError }: CardProps & { test: Test }) {
   const t = useTranslations('knowbots.outputs')
   const tk = useTranslations('knowbots')
   const format = useFormatter()
-  const finished = draft.report?.cases ?? []
+  const finished = test.report?.cases ?? []
   const outputs = useQuery({
-    queryKey: [...KEY, 'outputs', draft.draft_id, finished.length],
-    queryFn: () => fetchOutputs(draft.draft_id),
-    enabled: Boolean(draft.run_id) && finished.length > 0,
+    queryKey: [...KEY, 'outputs', test.test_id, finished.length],
+    queryFn: () => fetchOutputs(test.test_id),
+    enabled: finished.length > 0,
   })
-  // 补取：刷新会为有结论、还没取到的用例再取一次，测完的分身也行（审读 10-19）
+  // 补取：刷新会为有结论、还没取到的用例再取一次，测完的也行（审读 10-19）
   const fetchAgain = useMutation({
-    mutationFn: () => draftAction(draft.draft_id, 'refresh', csrfToken),
+    mutationFn: () => testAction(test.test_id, 'refresh', csrfToken),
     onSuccess: () => onDone(),
     onError,
   })
-  if (!draft.run_id || finished.length === 0) return null
+  if (finished.length === 0) return null
   const stored = new Map((outputs.data?.cases ?? []).map((c) => [c.case_id, c]))
   const missing = finished.filter((c) => !stored.has(c.case_id))
   return (
@@ -109,6 +104,15 @@ export function TestOutputs({
 function CaseBody({ outputs }: { outputs: CaseOutputs }) {
   const t = useTranslations('knowbots.outputs')
   const steps = outputs.steps ?? []
+  // 成稿是第几步「步名」写的（账 142）：不把 step_id 直接当步数
+  const writer = outputs.deliverable?.step_id
+  const at = writer ? steps.findIndex((s) => s.step_id === writer) : -1
+  const from =
+    at >= 0
+      ? t('fromStep', { n: at + 1, title: steps[at]?.title ?? writer ?? '' })
+      : writer
+        ? t('fromStepId', { step: writer })
+        : null
   return (
     <>
       {outputs.error ? (
@@ -117,9 +121,7 @@ function CaseBody({ outputs }: { outputs: CaseOutputs }) {
       <div>
         <h4 className="text-muted-foreground mb-1 text-xs">
           {t('deliverable')}
-          {outputs.deliverable?.step_id
-            ? ` · ${t('fromStep', { step: outputs.deliverable.step_id })}`
-            : ''}
+          {from ? ` · ${from}` : ''}
           {outputs.deliverable ? ` · ${outputs.deliverable.path}` : ''}
         </h4>
         {outputs.deliverable && outputs.deliverable_note ? (

@@ -11,7 +11,7 @@ import {
 } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store/ui'
-import { useTodoCounts } from '@/components/knowbots/shared'
+import { useCounts } from '@/components/knowbots/shared'
 import { InterfaceSettings } from './interface-settings'
 
 type AppShellProps = {
@@ -36,8 +36,8 @@ export function AppShell({ children, locale, roles, userLabel }: AppShellProps) 
   const closeOtherTabs = useUiStore((state) => state.closeOtherTabs)
   const syncTabs = useUiStore((state) => state.syncTabs)
   const allowedNavigation = useMemo(() => filterNavigationByRoles(roles), [roles])
-  // 创意、分身、专家三栏上的「要我们动手」条数（SDD 0037）
-  const todo = useTodoCounts(allowedNavigation.some((item) => item.key === 'ideas'))
+  // 受理、孵化、测试、交付四栏旁「等我们」的条数（SDD 0037 第七节）
+  const todo = useCounts(allowedNavigation.some((item) => item.key === 'acceptance'))
   const current = findNavigationItem(pathname)
   const allowedTabs = useMemo(
     () =>

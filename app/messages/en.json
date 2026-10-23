@@ -61,9 +61,10 @@
     "closeTab": "Close {name}",
     "governance": "Administration capability migration",
     "governanceDescription": "P0-007E will add navigation, authorization, CRUD, audit and shared tooling on this foundation.",
-    "ideas": "Ideas",
-    "avatars": "Avatars",
-    "experts": "Experts"
+    "acceptance": "Acceptance",
+    "incubation": "Incubation",
+    "tests": "Tests",
+    "delivery": "Delivery"
   },
   "settings": {
     "title": "Interface settings",
@@ -80,235 +81,317 @@
   },
   "knowbots": {
     "loading": "Loading…",
-    "loadFailed": "Could not load. Please refresh.",
-    "noPermission": "This account has no admin rights (the admin or operator role is required). Sign out and sign in with an administrator account.",
-    "actionFailed": "The action failed ({code}).",
-    "requestsTitle": "Submissions",
-    "filter": "Status",
-    "noRequests": "No submissions yet.",
-    "noDraftYet": "No avatar yet",
-    "status": {
-      "pending_test": "Waiting for test",
-      "testing": "Testing",
-      "passed": "Passed (to deliver)",
-      "failed": "Did not pass",
-      "delivered": "Delivered"
+    "loadFailed": "Could not load. Refresh and try again.",
+    "noPermission": "This account has no admin access (needs the admin or operator role). Sign out and sign in with an admin account.",
+    "actionFailed": "That did not work ({code}).",
+    "adminOnly": "This step needs the knowlab:release permission (accept, incubate, deliver, end a stuck test). Admin and operator both have it now; otherwise switch accounts.",
+    "category": "Categories",
+    "output": "Output",
+    "owner": "user {owner}",
+    "runtime": "runtime {runtime}",
+    "toName": "Everything about this name",
+    "byAt": "{who} · {at}",
+    "columns": {
+      "acceptance": "Acceptance",
+      "incubation": "Incubation",
+      "tests": "Tests",
+      "delivery": "Delivery"
     },
-    "draft": "Avatar {version}.{revision}",
-    "meta": "User {owner} · runtime {runtime}",
-    "attempts": "{n} attempts",
-    "reviewedBy": "Checked one by one by {who}",
-    "notReviewed": "Rule sources not checked yet",
-    "review": "Rule sources checked",
-    "budget": "Budget limit (CNY)",
-    "timeout": "Timeout (seconds)",
-    "startTest": "Start test",
-    "refresh": "Refresh result",
-    "reset": "Return timed-out test",
-    "deliver": "Retry delivery",
-    "report": "Test report",
-    "caseStatus": {
-      "passed": "passed",
-      "failed": "failed",
-      "needs_human": "needs a person to decide",
-      "error": "run error"
+    "categories": {
+      "pending": "To accept",
+      "accepted": "Accepted",
+      "rejected": "Not accepted",
+      "todo": "To incubate",
+      "in_progress": "Incubating (waiting for the user)",
+      "done": "Incubated",
+      "to_start": "To start",
+      "queued": "Queued",
+      "running": "Running",
+      "waiting": "Waiting for the user",
+      "finished": "Finished",
+      "to_return": "To return",
+      "awaiting_user": "Waiting for the user",
+      "to_review": "To review",
+      "listed": "Listed",
+      "not_listed": "Not listed",
+      "all": "All experts"
     },
-    "expectationsMet": "expectations met {met}/{total}",
-    "failedStep": "Step {step} failed: {checks}",
+    "empty": {
+      "acceptance": "No ideas in this category.",
+      "incubation": "Nothing in this category.",
+      "tests": "Nothing in this category.",
+      "delivery": "No experts in this category."
+    },
+    "ideaVersion": "idea v{version}",
+    "draftLabel": "candidate {label}",
+    "testLabel": "test {number} (candidate {label})",
+    "testNumber": "test {number}",
+    "expertVersion": "expert version {version}",
+    "fromIdea": "from idea v{version}",
+    "fromTest": "from test {number} (candidate {label})",
+    "latestAccepted": "latest accepted: idea v{version}",
+    "trial": "trial period",
+    "trialGates": "delivered before the two gates (trial period)",
+    "input": {
+      "idea": "Input: idea v{version}",
+      "draft": "Input: candidate {label}",
+      "test": "Input: results and write-ups of test {number} (candidate {label})",
+      "noTest": "Input: test record"
+    },
+    "acceptance": {
+      "title": "Write the acceptance",
+      "hint": "Go through the three checks; accept only when all pass. A rejection needs a reason the user can read.",
+      "check": {
+        "C-L5": "Not investment advice (C-L5)",
+        "C-L2": "The test data may be used (C-L2)",
+        "C-L1": "Within what this kind of expert does: the method comes only from the user (C-L1)"
+      },
+      "note": "Note for {check}",
+      "notePlaceholder": "Note (optional)",
+      "reason": "Reason (required to reject; the user can read it)",
+      "accept": "Accept",
+      "reject": "Do not accept",
+      "rule": "An acceptance is final; when the user revises the idea, write one for the new version.",
+      "done": "This version has its acceptance; see the right.",
+      "none": "No acceptance yet.",
+      "accepted": "Accepted",
+      "rejected": "Not accepted",
+      "trial": "accepted automatically in the trial period",
+      "reasonLine": "Reason: {reason}"
+    },
     "q": {
       "solves": "What problem does it solve?",
       "not_solves": "What does it not solve?",
-      "inputs": "What are the inputs?",
-      "steps": "What are the steps, and which rule decides each step?",
-      "outputs": "What does the output look like?",
+      "inputs": "What goes in?",
+      "steps": "What are the steps, and the rule for judging each?",
+      "outputs": "What comes out?",
       "correctness": "How do you know it is right?"
     },
-    "manifest": "Expert manifest (knowbot-manifest/v1, JSON)",
-    "badJson": "This is not valid JSON.",
-    "createDraft": "Hatch avatar",
-    "noDatasets": "This user has not uploaded any data.",
-    "questions": {
-      "title": "Questions to answer",
-      "intro": "The test stopped where a person has to decide; it continues once answered. We answer approvals; questions and ask-before prompts go to the user first (C-L1). If one is only about how to run, say why in one line and answer it ourselves; our answers are not the user's confirmation and are not written back to the cases or the rule sources.",
-      "failed": "That did not work ({code}).",
-      "kind": {
-        "tool_approval": "Approval",
-        "question": "Question",
-        "ask_before": "Before-step question"
-      },
-      "where": "case {case} · version {version}",
-      "withUser": "With the user, waiting for an answer.",
-      "approve": "Approve",
-      "deny": "Deny",
-      "ownWords": "Answer in your own words",
-      "answer": "Answer",
-      "toUser": "Send to the user",
-      "judgementHint": "Anything that is an investment judgement (basis, trade-off, threshold) goes back to the user.",
-      "take": "Answer it ourselves",
-      "takeReason": "Why this is only about how to run (one line)",
-      "taken": "Answered by us: {reason}"
+    "tabs": {
+      "method": "Method",
+      "cases": "Acceptance cases",
+      "datasets": "User's data",
+      "answered": "Answered questions"
     },
-    "answeredTitle": "Questions answered during tests (only the user's go into the next draft's rule sources)",
+    "noCases": "No acceptance cases.",
+    "expect": {
+      "where": "Output / item",
+      "how": "Compared by",
+      "value": "Should be",
+      "tolerance": "Tolerance"
+    },
+    "noDatasets": "This user has not uploaded any data.",
+    "bindingsHint": "Write the manifest's data_bindings like this:",
+    "noAnswered": "No questions answered during tests yet.",
+    "answeredTitle": "Questions answered during tests (only the user's answers go into the next candidate's rule sources)",
     "answeredBy": {
       "operator": "answered by us",
       "user": "answered by the user",
       "operatorWhy": "answered by us ({reason})"
     },
-    "adminOnly": "Only an admin can do this (create drafts, review rule sources, deliver, return). Operators can view, start tests and answer how-to-run questions.",
-    "owner": "User {owner}",
-    "questionsWaiting": "{n} questions waiting",
-    "filters": {
-      "all": "All",
-      "todo": "Needs us",
+    "manifest": "Expert manifest (knowbot-manifest/v1, JSON)",
+    "badJson": "Not valid JSON.",
+    "createDraft": "Incubate the candidate",
+    "hatch": {
+      "title": "Incubation",
+      "pick": "Which idea version to incubate (accepted ones only)",
+      "manual": "Manual incubation: paste the expert manifest",
+      "hint": "Only manual incubation for now: write the manifest elsewhere, paste it here, and it is checked and incubated. Rule sources may cite only sentences of this idea version; the x.y number is set by the backend.",
+      "cancel": "Not now",
+      "again": "Incubate this name again",
+      "noAccepted": "This name has no accepted idea version yet."
+    },
+    "draftState": {
+      "reviewPending": "Waiting for the user's review",
+      "reviewRejected": "The user said no",
+      "versionTaken": "Version already an expert",
+      "ready": "Ready to test",
+      "toReview": "Rule sources to check"
+    },
+    "draftStatus": {
+      "pending_test": "To test",
       "testing": "Testing",
-      "failed": "Did not pass",
-      "delivered": "Delivered"
+      "passed": "Passed",
+      "failed": "Not passed"
     },
-    "noMatch": "No submissions of this kind.",
-    "stage": {
-      "none": "No avatar yet",
-      "review": "Check rule sources",
-      "start": "Ready to test",
-      "testing": "Testing",
-      "failed": "Did not pass",
-      "passed": "Passed, to deliver",
-      "delivered": "Delivered"
+    "incubation": {
+      "next": "This candidate",
+      "askUser": "Ask the user to review",
+      "reviewWaiting": "Asked the user to review on {at}; waiting for an answer.",
+      "reviewOk": "The user reviewed it: fine.",
+      "reviewNotOk": "The user said no: {note}. Incubate again."
     },
-    "progress": "Progress",
-    "steps": {
-      "hatch": "Hatch",
-      "review": "Check sources",
-      "test": "Test",
-      "deliver": "Deliver"
+    "reviewHint": "Every rule must trace back to the user's own words in this idea version (C-L1). Read the rule sources on the right before pressing.",
+    "review": "Rule sources checked one by one",
+    "reviewedBy": "checked one by one by {who}",
+    "notReviewed": "Rule sources not checked yet",
+    "blocked": {
+      "version_taken": "The version this candidate aims at is already an expert; incubate again.",
+      "rules_not_reviewed": "Rule sources not checked yet.",
+      "test_running": "A test of this name is running; wait for it to end."
     },
-    "next": {
-      "none": "Next: hatch the first avatar",
-      "review": "Next: check every rule source",
-      "start": "Next: start the test",
-      "testing": "Testing: press “Refresh result” now and then",
-      "failed": "Did not pass: read the result and outputs above, fix the manifest and hatch the next avatar",
-      "passed": "Passed, but delivery failed: retry delivery",
-      "delivered": "Delivered to knowmart",
-      "revise": "New revision: hatch the next avatar",
-      "superseded": "A newer avatar was hatched after this one; this is history"
+    "blockedShort": {
+      "version_taken": "Version taken",
+      "rules_not_reviewed": "Sources to check",
+      "test_running": "A test is running"
     },
-    "deliveredAs": "Delivered to knowmart as expert {id}",
-    "reviseButton": "Revise: hatch the next avatar",
-    "reviewHint": "Every rule must match the user’s own words (C-L1). Read them all before confirming.",
-    "startHint": "The budget is split evenly across cases; the timeout is shared by all cases of the run and excludes time spent waiting for answers.",
-    "runningSince": "Started {at}, running for {minutes} minutes",
-    "acceptedWaiting": "Accepted, not started yet: waiting for the test computer",
-    "blockedOffline": "Accepted, not started yet: the test computer is offline; waiting for it to connect",
-    "blockedFolder": "Accepted, not started yet: the test computer has not prepared a clean folder",
-    "submittedAt": "Submitted {at}; press “Refresh result” to see whether it started",
-    "refreshedAt": "Last refreshed {at}",
-    "testingHint": "After a refresh the line above says which case and step it is on; a case shows up in the result below only when it has finished.",
-    "spent": "Spent {amount} CNY",
-    "finishedAt": "Finished {at}",
-    "noCaseYet": "No case has finished yet.",
-    "reference": "Reference",
-    "tabs": {
-      "method": "Method",
-      "cases": "Acceptance cases",
-      "datasets": "User data",
-      "rules": "Rule sources",
-      "amendments": "Amendments",
-      "answered": "Answered questions",
-      "history": "Avatars",
-      "manifest": "Manifest"
-    },
-    "noCases": "No acceptance cases.",
-    "expect": {
-      "where": "Artifact / field",
-      "how": "Comparison",
-      "value": "Expected",
-      "tolerance": "Tolerance"
-    },
-    "bindingsHint": "Write the manifest’s data_bindings like this:",
-    "noAnswered": "No questions answered during tests yet.",
-    "noAmendments": "The user has not written any amendment.",
-    "casesPassed": "{met}/{total} cases passed",
-    "showReport": "Show this draft’s result",
-    "progressNow": "Where it is",
-    "progressLine": "Running {case} (case {done}/{total}) · step {step}/{steps} {title} · try {attempt}",
-    "spentSoFar": "{amount} CNY spent so far",
-    "queuedLine": "{case} (case {done}/{total}) is queued behind an earlier task of the test account",
-    "amendments": {
-      "title": "Amendments the user wrote: cite each one in the next avatar's rule sources (ref as shown below), or decline it with a reason.",
-      "cite": "Cite as: {ref}",
-      "status": {
-        "open": "waiting",
-        "used": "used in avatar {revision}",
-        "declined": "not followed: {reason}"
-      },
-      "declinedBy": " ({who})",
-      "reason": "Why it is not followed (the user sees this)",
-      "decline": "Decline"
-    },
-    "reviewBlocked": "Handle these amendments first: cite them in this avatar's rule sources, or decline them with a reason (tab “Amendments”).",
-    "newerAmendments": "The user wrote {n} more amendments after this avatar was hatched; they go into the next avatar.",
-    "pages": {
-      "ideas": {
-        "title": "Ideas",
-        "intro": "The method, acceptance cases and data a user handed in, plus any amendments written later. Handle amendments (cite or decline) and see which avatars were hatched from it; hatching happens on the Avatars page. The method comes only from the user (C-L1)."
-      },
-      "avatars": {
-        "title": "Avatars",
-        "intro": "What was hatched from an idea to be tested. Each avatar goes through four stages on this page: hatch, check sources, test, deliver. After a test, read each case's write-up and step outputs to verify it."
-      },
-      "experts": {
-        "title": "Experts",
-        "intro": "Versions that passed and were delivered to knowmart; retry here when delivery failed."
+    "toIncubation": "check it in Incubation",
+    "tests": {
+      "start": "Start a test",
+      "meta": "started {at} by {who} · budget {budget} CNY · timeout {timeout} s",
+      "backfilled": "Earlier tests left no record (before 0012 a retest of the same candidate overwrote the last one).",
+      "waiting": "Stopped where a person has to decide; waiting for an answer.",
+      "ended": {
+        "passed": "Passed: it is an expert.",
+        "failed": "Not passed: see the results and outputs on the right, then incubate again.",
+        "platform_error": "Platform error; this test is over. The candidate is back to be tested, and a retest gets a new number."
       }
     },
-    "avatarsTitle": "Avatars",
-    "noAvatars": "No avatars yet. Pick an idea, or press “Hatch an avatar”.",
-    "superseded": "a newer avatar exists",
-    "toIdea": "Its idea",
-    "avatarsOfIdea": "Its avatars",
+    "toDelivery": "go to Delivery",
+    "testStatus": {
+      "queued": "Queued",
+      "running": "Running",
+      "waiting": "Waiting for the user",
+      "passed": "Passed",
+      "failed": "Not passed",
+      "platform_error": "Platform error"
+    },
+    "budget": "Budget limit (CNY)",
+    "timeout": "Timeout (seconds)",
+    "startTest": "Start test",
+    "startHint": "The budget is split evenly across cases; the timeout is shared by all cases of the test, and time waiting for answers does not count.",
+    "refresh": "Refresh results",
+    "reset": "End as stuck (platform error)",
+    "runningSince": "running since {at}, {minutes} minutes so far",
+    "acceptedWaiting": "Accepted, not started: waiting for the test computer to pick it up",
+    "blockedOffline": "Accepted, not started: the test computer is offline",
+    "blockedFolder": "Accepted, not started: the test computer has not given a clean folder yet",
+    "refreshedAt": "last refreshed {at}",
+    "testingHint": "After a refresh, the line above shows which case and step it is on; a row appears in the results on the right once a case finishes. If it is past its time with no result, end it as stuck.",
+    "progressNow": "Where it is",
+    "progressLine": "running {case} ({done}/{total}) · step {step}/{steps} {title} · attempt {attempt}",
+    "spentSoFar": "{amount} CNY spent so far",
+    "queuedLine": "{case} ({done}/{total}) is queued behind the test account's previous job",
+    "spent": "spent {amount} CNY",
+    "finishedAt": "finished {at}",
+    "noCaseYet": "No case has finished yet.",
+    "report": "Test results",
+    "caseStatus": {
+      "passed": "passed",
+      "failed": "not passed",
+      "needs_human": "needs a person",
+      "error": "run error"
+    },
+    "expectationsMet": "expectations met {met}/{total}",
+    "failedStep": "step {step} did not pass: {checks}",
     "copy": "Copy",
     "copied": "Copied",
-    "ideaFilters": {
-      "all": "All",
-      "todo": "Needs us",
-      "waiting": "Waiting for the user",
-      "expert": "Has an expert"
+    "deliver": "Retry delivery",
+    "expertStage": {
+      "to_return": "To return",
+      "awaiting_user": "Waiting for the user",
+      "declined": "Declined by the user",
+      "to_review": "To review",
+      "rejected": "Review rejected",
+      "to_deliver": "Approved, to deliver",
+      "listed": "Listed",
+      "stopped": "Stopped"
     },
-    "ideaStage": {
-      "amend": "Amendment to handle",
-      "hatch": "To hatch",
-      "waiting": "Waiting for the user",
-      "working": "Avatar in progress",
-      "expert": "Has an expert"
+    "delivery": {
+      "next": "This version",
+      "returnHint": "Return: the user gets an item in Review on the web, reads the write-ups and results, and decides whether to take it.",
+      "return": "Return to the user",
+      "awaitingUser": "Returned; waiting for the user to decide.",
+      "reviewHint": "Operator review: the write-up carries no target prices or ratings (C-L5), and the acceptance matches the test results. Public needs a qualified publisher (reviewed in knowmart); otherwise it stays private.",
+      "reason": "Reason (required to reject)",
+      "approveSelf": "Approve: private use",
+      "approvePublic": "Approve: ask to go public",
+      "reject": "Reject",
+      "backfillReview": "Listed in the trial period: record an operator review once (no new delivery).",
+      "stopHint": "Stop: the knowmart version stops too; nobody can ask it any more, runs already going finish.",
+      "stopReason": "Reason for stopping",
+      "stop": "Stop this version",
+      "noTestRecord": "No record of this test."
     },
-    "ideaSteps": {
-      "submit": "Submitted",
-      "hatch": "Hatch",
-      "test": "Avatar tests",
-      "expert": "Expert"
+    "record": {
+      "returned": "Returned",
+      "userGate": "User gate",
+      "review": "Operator review gate",
+      "listed": "Listing",
+      "stopped": "Stopped",
+      "notYet": "not yet",
+      "accepted": "taken",
+      "declined": "declined",
+      "approved": {
+        "self": "approved (private use)",
+        "public": "approved (asked to go public)"
+      },
+      "rejected": "rejected: {reason}",
+      "listedLine": "{at} · knowmart id {id} · {status}"
     },
-    "ideaNext": {
-      "amend": "Next: handle the user's amendments (cite them in the next avatar, or decline them)",
-      "hatch": "Next: hatch an avatar from this idea",
-      "waiting": "A test question is with the user; waiting for the answer",
-      "working": "An avatar is under test: see the Avatars page",
-      "expert": "Has an expert; hatch the next avatar to revise it"
+    "name": {
+      "timeline": "Record",
+      "amendments": "Amendments (retired, read only)",
+      "summary": "Latest of each process"
     },
-    "hatch": {
-      "button": "Hatch an avatar",
-      "forIdea": "Hatch an avatar from this idea",
-      "title": "Hatch",
-      "pick": "Which idea to hatch",
-      "manual": "Manual hatching: paste the expert manifest",
-      "hint": "Only manual hatching exists for now: the manifest is written elsewhere, pasted here, checked and hatched. Assisted and automatic hatching, the source table, gaps with the user's answers and manifest candidates will go into this block later.",
-      "cancel": "Not now",
-      "next": "Hatch the next avatar"
+    "summary": {
+      "accepted": "accepted",
+      "rejected": "not accepted",
+      "acceptancePending": "to accept"
     },
-    "side": {
-      "expand": "Expand reference",
-      "collapse": "Collapse reference",
-      "resize": "Drag to resize (arrow keys work too)",
-      "open": "Reference"
+    "event": {
+      "submitted": "Apply: idea v1",
+      "revised": "Revise: idea v{version}",
+      "accepted": "Acceptance: idea v{version} accepted",
+      "rejected": "Acceptance: idea v{version} not accepted",
+      "draft": "Incubation: idea v{version} → candidate {label}",
+      "reviewRequested": "Incubation: asked the user to review candidate {label}",
+      "reviewOk": "Review: the user said candidate {label} is fine",
+      "reviewNotOk": "Review: the user said no to candidate {label}",
+      "testStarted": "Test: candidate {label} → test {number}",
+      "testFinished": "Test: test {number} {status}",
+      "expert": "Test: test {number} passed → expert version {version}",
+      "returned": "Return: expert version {version} sent to the user",
+      "userAccepted": "User gate: version {version} taken",
+      "userDeclined": "User gate: version {version} declined",
+      "approved": "Operator review: version {version} {listing}",
+      "reviewRejected": "Operator review: version {version} rejected",
+      "listed": "Listing: version {version} delivered to knowmart",
+      "stopped": "Stopped: version {version}"
+    },
+    "amendments": {
+      "title": "Amendments the user wrote earlier (SDD 0035, retired): kept as history, sources still traceable. From now on a change of method is a new idea version.",
+      "status": {
+        "open": "not used",
+        "used": "used in draft {revision}",
+        "declined": "not followed: {reason}"
+      }
+    },
+    "pages": {
+      "acceptance": {
+        "title": "Acceptance",
+        "intro": "Pick a version of an idea and write its acceptance after three checks: not investment advice (C-L5), the test data may be used (C-L2), within what this kind of expert does (C-L1)."
+      },
+      "incubation": {
+        "title": "Incubation",
+        "intro": "Pick an accepted idea version and paste a manifest to incubate a candidate; you may ask the user to review it. Only candidates with checked rule sources go to testing."
+      },
+      "tests": {
+        "title": "Tests",
+        "intro": "Run a candidate with checked rule sources through its cases; every run gets a new number. Platform errors are retested on the same candidate; a pass makes an expert."
+      },
+      "delivery": {
+        "title": "Delivery",
+        "intro": "Return to the user → the user takes it → operator review → deliver to knowmart. Listed versions can be stopped; All experts lists every version of every name."
+      },
+      "name": {
+        "title": "Name",
+        "intro": "The life of one name: the latest of each process, and the record in time order."
+      }
+    },
+    "todo": {
+      "title": "Waiting for us",
+      "line": "{name} · {n}"
     },
     "outputs": {
       "title": "Write-ups and step outputs",
@@ -334,25 +417,40 @@
       "fetchAgain": "Fetch outputs again",
       "notYet": "Not fetched yet: press “Fetch outputs again”.",
       "consentNeeded": "This idea was submitted under the old test-data notice: outputs are neither fetched nor shown until the user accepts the new notice on the web.",
-      "fromStep": "written by step {step}"
+      "fromStep": "written by step {n} “{title}”",
+      "acceptance": "Acceptance",
+      "rules": "Rule sources",
+      "manifest": "Manifest",
+      "report": "Results and outputs",
+      "delivery": "Return and listing record",
+      "fromStepId": "written by step {step}"
     },
-    "experts": {
-      "title": "Experts",
-      "none": "No delivered experts yet.",
-      "filters": {
-        "live": "Live",
-        "failed": "Delivery failed"
+    "questions": {
+      "title": "Questions to answer",
+      "intro": "The test stopped where a person has to decide; it continues once answered. We answer approvals; questions and ask-before prompts go to the user first (C-L1). If one is only about how to run, say why in one line and answer it ourselves; our answers are not the user's confirmation and are not remembered as answered prompts or put into the rule sources.",
+      "failed": "That did not work ({code}).",
+      "kind": {
+        "tool_approval": "Approval",
+        "question": "Question",
+        "ask_before": "Before-step question"
       },
-      "version": "version {version}",
-      "knowbotId": "knowmart id {id}",
-      "deliveredAt": "delivered {at}",
-      "deliveryFailed": "Passed, but delivery failed",
-      "from": "From {avatar}",
-      "versions": "Versions"
+      "where": "case {case} · candidate {label}",
+      "withUser": "With the user, waiting for an answer.",
+      "approve": "Approve",
+      "deny": "Deny",
+      "ownWords": "Answer in your own words",
+      "answer": "Answer",
+      "toUser": "Send to the user",
+      "judgementHint": "Anything that is an investment judgement (basis, trade-off, threshold) goes back to the user.",
+      "take": "Answer it ourselves",
+      "takeReason": "Why this is only about how to run (one line)",
+      "taken": "Answered by us: {reason}"
     },
-    "todo": {
-      "title": "Needs us",
-      "line": "{name} · {n}"
+    "side": {
+      "expand": "Expand reference",
+      "collapse": "Collapse reference",
+      "resize": "Drag to resize (arrow keys work too)",
+      "open": "Reference"
     }
   }
 }

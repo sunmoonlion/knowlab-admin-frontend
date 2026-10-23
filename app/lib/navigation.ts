@@ -1,9 +1,10 @@
 import {
-  BadgeCheck,
-  Bot,
   ChartNoAxesCombined,
+  ClipboardCheck,
+  Egg,
+  FlaskConical,
   Gauge,
-  Lightbulb,
+  PackageCheck,
   Settings,
   TableProperties,
   type LucideIcon,
@@ -14,9 +15,10 @@ export type AdminNavigationItem = {
   path: string
   labelKey:
     | 'dashboard'
-    | 'ideas'
-    | 'avatars'
-    | 'experts'
+    | 'acceptance'
+    | 'incubation'
+    | 'tests'
+    | 'delivery'
     | 'reference'
     | 'richReference'
     | 'settings'
@@ -33,27 +35,34 @@ export const adminNavigation: readonly AdminNavigationItem[] = [
     icon: Gauge,
     pinned: true,
   },
-  // 创意、分身、专家（SDD 0037，所有者「把seed infant和bot分三栏」）：后端按管理端 scope 把关，
-  // 这里只决定显不显示入口
+  // 受理 · 孵化 · 测试 · 交付（SDD 0037 第七节）：左边栏都是过程；全部专家在「交付」里一个
+  // 大类。后端按管理端 scope 把关，这里只决定显不显示入口
   {
-    key: 'ideas',
-    path: '/ideas',
-    labelKey: 'ideas',
-    icon: Lightbulb,
+    key: 'acceptance',
+    path: '/acceptance',
+    labelKey: 'acceptance',
+    icon: ClipboardCheck,
     requiredRoles: ['admin', 'operator'],
   },
   {
-    key: 'avatars',
-    path: '/avatars',
-    labelKey: 'avatars',
-    icon: Bot,
+    key: 'incubation',
+    path: '/incubation',
+    labelKey: 'incubation',
+    icon: Egg,
     requiredRoles: ['admin', 'operator'],
   },
   {
-    key: 'experts',
-    path: '/experts',
-    labelKey: 'experts',
-    icon: BadgeCheck,
+    key: 'tests',
+    path: '/tests',
+    labelKey: 'tests',
+    icon: FlaskConical,
+    requiredRoles: ['admin', 'operator'],
+  },
+  {
+    key: 'delivery',
+    path: '/delivery',
+    labelKey: 'delivery',
+    icon: PackageCheck,
     requiredRoles: ['admin', 'operator'],
   },
   {

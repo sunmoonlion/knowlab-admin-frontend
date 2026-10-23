@@ -61,9 +61,10 @@
     "closeTab": "关闭{name}",
     "governance": "管理能力迁移中枢",
     "governanceDescription": "P0-007E 将在此基础上逐项迁入菜单、权限、CRUD、审计和通用工具能力。",
-    "ideas": "创意",
-    "avatars": "分身",
-    "experts": "专家"
+    "acceptance": "受理",
+    "incubation": "孵化",
+    "tests": "测试",
+    "delivery": "交付"
   },
   "settings": {
     "title": "界面设置",
@@ -83,38 +84,81 @@
     "loadFailed": "读取失败，请刷新再试。",
     "noPermission": "当前账号没有管理权限（要 admin 或 operator 角色）。请退出，用管理员账号登录。",
     "actionFailed": "操作没成功（{code}）。",
-    "requestsTitle": "用户的提交",
-    "filter": "按状态看",
-    "noRequests": "还没有提交。",
-    "noDraftYet": "还没有分身",
-    "status": {
-      "pending_test": "待测试",
-      "testing": "测试中",
-      "passed": "测试通过（待交付）",
-      "failed": "测试未通过",
-      "delivered": "已交付"
+    "adminOnly": "这一步要 knowlab:release 权限（受理、孵化、交付、判定卡住）。现在 admin、operator 都有；没有的请换账号。",
+    "category": "大类",
+    "output": "输出",
+    "owner": "用户 {owner}",
+    "runtime": "运行方 {runtime}",
+    "toName": "这个名称的全部记录",
+    "byAt": "{who} · {at}",
+    "columns": {
+      "acceptance": "受理",
+      "incubation": "孵化",
+      "tests": "测试",
+      "delivery": "交付"
     },
-    "draft": "分身 {version}.{revision}",
-    "meta": "用户 {owner} · 运行方 {runtime}",
-    "attempts": "已发起 {n} 次",
-    "reviewedBy": "已由 {who} 逐条核对",
-    "notReviewed": "还没核对出处",
-    "review": "已逐条核对出处",
-    "budget": "预算上限（元）",
-    "timeout": "超时（秒）",
-    "startTest": "发起测试",
-    "refresh": "刷新结果",
-    "reset": "超时退回",
-    "deliver": "重试交付",
-    "report": "测试报告",
-    "caseStatus": {
-      "passed": "通过",
-      "failed": "未通过",
-      "needs_human": "需要人来决定",
-      "error": "运行出错"
+    "categories": {
+      "pending": "待受理",
+      "accepted": "已受理",
+      "rejected": "不受理",
+      "todo": "待孵化",
+      "in_progress": "孵化中（等用户审核）",
+      "done": "已孵出",
+      "to_start": "待发起",
+      "queued": "排队",
+      "running": "进行中",
+      "waiting": "等用户答",
+      "finished": "已结束",
+      "to_return": "待交回",
+      "awaiting_user": "等用户同意",
+      "to_review": "待运营审核",
+      "listed": "已上架",
+      "not_listed": "没上架",
+      "all": "全部专家"
     },
-    "expectationsMet": "期望满足 {met}/{total}",
-    "failedStep": "第 {step} 步没过：{checks}",
+    "empty": {
+      "acceptance": "这一类没有创意。",
+      "incubation": "这一类没有。",
+      "tests": "这一类没有。",
+      "delivery": "这一类没有专家。"
+    },
+    "ideaVersion": "创意 v{version}",
+    "draftLabel": "准专家 {label}",
+    "testLabel": "测试 {number}（准专家 {label}）",
+    "testNumber": "测试 {number}",
+    "expertVersion": "专家第 {version} 版",
+    "fromIdea": "出自创意 v{version}",
+    "fromTest": "出自测试 {number}（准专家 {label}）",
+    "latestAccepted": "最新受理了的：创意 v{version}",
+    "trial": "试行期",
+    "trialGates": "两道门之前交付（试行期）",
+    "input": {
+      "idea": "输入：创意 v{version}",
+      "draft": "输入：准专家 {label}",
+      "test": "输入：测试 {number}（准专家 {label}）的结果与成稿",
+      "noTest": "输入：测试记录"
+    },
+    "acceptance": {
+      "title": "写受理单",
+      "hint": "三样逐条看；都过才能受理。不受理要写理由，用户看得到。",
+      "check": {
+        "C-L5": "不是投资建议类（C-L5）",
+        "C-L2": "测试数据有权用（C-L2）",
+        "C-L1": "归这类专家能做的范围：方法只来自用户（C-L1）"
+      },
+      "note": "{check}的说明",
+      "notePlaceholder": "说明（可不填）",
+      "reason": "理由（不受理必填，用户看得到）",
+      "accept": "受理",
+      "reject": "不受理",
+      "rule": "受理单写了不改；用户改创意出新版本，再给新版本写。",
+      "done": "这一版已写受理单，见右边。",
+      "none": "还没写受理单。",
+      "accepted": "受理",
+      "rejected": "不受理",
+      "trial": "试行期自动受理",
+      "reasonLine": "理由：{reason}"
+    },
     "q": {
       "solves": "它解决什么问题？",
       "not_solves": "它不解决什么？",
@@ -123,99 +167,11 @@
       "outputs": "输出长什么样？",
       "correctness": "怎样算做对了？"
     },
-    "manifest": "专家清单（knowbot-manifest/v1，JSON）",
-    "badJson": "不是合法的 JSON。",
-    "createDraft": "孵出分身",
-    "noDatasets": "这个用户还没有上传数据。",
-    "questions": {
-      "title": "待回答的问题",
-      "intro": "测试跑到要人决定的地方停下了，答完接着跑。审批由我们答；反问和开步前的提问先归用户本人（C-L1）。确认只是跑法问题（不涉及口径、取舍、阈值）的，写一句理由改由我们答；我们答的不算用户确认，不写回用例、不进规则出处。",
-      "failed": "没成功（{code}）。",
-      "kind": {
-        "tool_approval": "审批",
-        "question": "反问",
-        "ask_before": "开步前的提问"
-      },
-      "where": "用例 {case} · 第 {version} 版",
-      "withUser": "在用户那里，等用户回答。",
-      "approve": "批准",
-      "deny": "拒绝",
-      "ownWords": "自己写答案",
-      "answer": "回答",
-      "toUser": "转给用户",
-      "judgementHint": "涉及投资判断（口径、取舍、阈值之类）的，请转回用户。",
-      "take": "改由我们答",
-      "takeReason": "为什么这只是跑法问题（一句话）",
-      "taken": "改由我们答：{reason}"
-    },
-    "answeredTitle": "测试中答过的问题（只有用户答的写进下一版草稿的规则出处）",
-    "answeredBy": {
-      "operator": "我们答的",
-      "user": "用户答的",
-      "operatorWhy": "我们答的（{reason}）"
-    },
-    "adminOnly": "这一步只有 admin 能做（建草稿、核出处、交付、退回）。运营可以看、发起测试、答跑法问题。",
-    "owner": "用户 {owner}",
-    "questionsWaiting": "{n} 个问题待回答",
-    "filters": {
-      "all": "全部",
-      "todo": "要我们动手",
-      "testing": "测试中",
-      "failed": "未通过",
-      "delivered": "已交付"
-    },
-    "noMatch": "没有这一类的提交。",
-    "stage": {
-      "none": "还没有分身",
-      "review": "待核出处",
-      "start": "待发起测试",
-      "testing": "测试中",
-      "failed": "测试未通过",
-      "passed": "通过，待交付",
-      "delivered": "已交付"
-    },
-    "progress": "进度",
-    "steps": {
-      "hatch": "孵化",
-      "review": "核对出处",
-      "test": "测试",
-      "deliver": "交付"
-    },
-    "next": {
-      "none": "下一步：孵化第一个分身",
-      "review": "下一步：逐条核对规则出处",
-      "start": "下一步：发起测试",
-      "testing": "测试中：隔一阵点「刷新结果」",
-      "failed": "测试未通过：看上面的结果与交回物，改好清单后孵化下一个分身",
-      "passed": "测试通过，交付没成功：重试交付",
-      "delivered": "已交付 knowmart",
-      "revise": "改版：孵化下一个分身",
-      "superseded": "这个分身之后已孵化了更新的，这里只是历史"
-    },
-    "deliveredAs": "已交付 knowmart，专家编号 {id}",
-    "reviseButton": "改版，孵化下一个分身",
-    "reviewHint": "每条规则都要能对上用户的原话（C-L1）。看完下面这些再点。",
-    "startHint": "预算按用例平分；超时是整次测试几条用例共用的，等人回答的时间不算。",
-    "runningSince": "开跑于 {at}，已跑 {minutes} 分钟",
-    "acceptedWaiting": "已受理，还没开跑：等测试电脑接手",
-    "blockedOffline": "已受理，还没开跑：测试电脑不在线，等它连上",
-    "blockedFolder": "已受理，还没开跑：测试电脑还没给出干净的目录",
-    "submittedAt": "{at} 提交，点「刷新结果」看开没开跑",
-    "refreshedAt": "上次刷新 {at}",
-    "testingHint": "刷新后上面会写跑到第几条、第几步；一条用例跑完，下面的结果里才出现一行。",
-    "spent": "花费 {amount} 元",
-    "finishedAt": "结束于 {at}",
-    "noCaseYet": "还没有跑完的用例。",
-    "reference": "对照材料",
     "tabs": {
-      "method": "用户的方法",
+      "method": "方法",
       "cases": "验收用例",
       "datasets": "用户的数据",
-      "rules": "规则出处",
-      "amendments": "补充方法",
-      "answered": "答过的问题",
-      "history": "历次分身",
-      "manifest": "清单原文"
+      "answered": "答过的问题"
     },
     "noCases": "没有验收用例。",
     "expect": {
@@ -224,91 +180,218 @@
       "value": "应当是",
       "tolerance": "允许误差"
     },
+    "noDatasets": "这个用户还没有上传数据。",
     "bindingsHint": "清单的 data_bindings 照这里写：",
     "noAnswered": "测试中还没有答过的问题。",
-    "noAmendments": "用户还没有写过补充。",
-    "casesPassed": "用例通过 {met}/{total}",
-    "showReport": "看这一稿的结果",
+    "answeredTitle": "测试中答过的问题（只有用户答的写进下一位准专家的规则出处）",
+    "answeredBy": {
+      "operator": "我们答的",
+      "user": "用户答的",
+      "operatorWhy": "我们答的（{reason}）"
+    },
+    "manifest": "专家清单（knowbot-manifest/v1，JSON）",
+    "badJson": "不是合法的 JSON。",
+    "createDraft": "孵出准专家",
+    "hatch": {
+      "title": "孵化",
+      "pick": "孵化哪一版创意（只能选受理了的）",
+      "manual": "手工孵化：贴专家清单",
+      "hint": "现在只有手工孵化：清单在外面写好，贴进来校验后孵出。规则出处只认这一版创意里的句子；版本号 x.y 由后端定。",
+      "cancel": "先不孵化",
+      "again": "照这个名称再孵化",
+      "noAccepted": "这个名称还没有受理了的创意版本。"
+    },
+    "draftState": {
+      "reviewPending": "等用户审核",
+      "reviewRejected": "用户说不行",
+      "versionTaken": "版本号已出过专家",
+      "ready": "待发起测试",
+      "toReview": "待核出处"
+    },
+    "draftStatus": {
+      "pending_test": "待测",
+      "testing": "测试中",
+      "passed": "通过",
+      "failed": "没通过"
+    },
+    "incubation": {
+      "next": "这位准专家",
+      "askUser": "请用户审核",
+      "reviewWaiting": "{at} 请用户审核，等用户答。",
+      "reviewOk": "用户审核过：行。",
+      "reviewNotOk": "用户说不行：{note}。请再孵化。"
+    },
+    "reviewHint": "每条规则都要能对上用户这一版创意的原话（C-L1）。看完右边的规则出处再点。",
+    "review": "已逐条核对出处",
+    "reviewedBy": "已由 {who} 逐条核对",
+    "notReviewed": "还没核对出处",
+    "blocked": {
+      "version_taken": "这一稿冲的版本号已经出过专家，请再孵化。",
+      "rules_not_reviewed": "还没核出处。",
+      "test_running": "这个名称有一次测试在跑，等它结束。"
+    },
+    "blockedShort": {
+      "version_taken": "版本号已出过",
+      "rules_not_reviewed": "待核出处",
+      "test_running": "有测试在跑"
+    },
+    "toIncubation": "去孵化里核",
+    "tests": {
+      "start": "发起测试",
+      "meta": "{at} 由 {who} 发起 · 预算 {budget} 元 · 超时 {timeout} 秒",
+      "backfilled": "这之前的测试没留记录（0012 之前同一稿重测会盖掉上一次）。",
+      "waiting": "跑到要人决定的地方停下了，等回答。",
+      "ended": {
+        "passed": "通过：出了专家。",
+        "failed": "没通过：看右边的结果与交回物，再孵化。",
+        "platform_error": "平台出错，这次结束；准专家回到待测，重测是新编号。"
+      }
+    },
+    "toDelivery": "去交付",
+    "testStatus": {
+      "queued": "排队",
+      "running": "进行中",
+      "waiting": "等用户答",
+      "passed": "通过",
+      "failed": "没通过",
+      "platform_error": "平台出错"
+    },
+    "budget": "预算上限（元）",
+    "timeout": "超时（秒）",
+    "startTest": "发起测试",
+    "startHint": "预算按用例平分；超时是整次测试几条用例共用的，等人回答的时间不算。",
+    "refresh": "刷新结果",
+    "reset": "判定卡住（记平台出错）",
+    "runningSince": "开跑于 {at}，已跑 {minutes} 分钟",
+    "acceptedWaiting": "已受理，还没开跑：等测试电脑接手",
+    "blockedOffline": "已受理，还没开跑：测试电脑不在线，等它连上",
+    "blockedFolder": "已受理，还没开跑：测试电脑还没给出干净的目录",
+    "refreshedAt": "上次刷新 {at}",
+    "testingHint": "刷新后上面会写跑到第几条、第几步；一条用例跑完，右边的结果里才出现一行。超时还没结论的，点「判定卡住」结束这一次。",
     "progressNow": "跑到哪了",
     "progressLine": "正在跑 {case}（第 {done}/{total} 条）· 第 {step}/{steps} 步 {title} · 这一步第 {attempt} 次",
     "spentSoFar": "到现在花了 {amount} 元",
     "queuedLine": "{case}（第 {done}/{total} 条）在排队：排在测试账号前一个委托后面，等它结束",
-    "amendments": {
-      "title": "用户写的补充方法：每条要么用进下一个分身的出处（ref 写下面那串），要么写理由不照做。",
-      "cite": "出处写：{ref}",
-      "status": {
-        "open": "待处理",
-        "used": "已用进第 {revision} 个分身",
-        "declined": "没照做：{reason}"
-      },
-      "declinedBy": "（{who}）",
-      "reason": "不照做的理由（用户看得到）",
-      "decline": "不照做"
+    "spent": "花费 {amount} 元",
+    "finishedAt": "结束于 {at}",
+    "noCaseYet": "还没有跑完的用例。",
+    "report": "测试结果",
+    "caseStatus": {
+      "passed": "通过",
+      "failed": "未通过",
+      "needs_human": "需要人来决定",
+      "error": "运行出错"
     },
-    "reviewBlocked": "先处理这几条补充：用进这个分身的出处，或写理由不照做（页签「补充方法」）。",
-    "newerAmendments": "这个分身孵出后用户又写了 {n} 条补充，下一个分身处理。",
-    "pages": {
-      "ideas": {
-        "title": "创意",
-        "intro": "用户交来的方法、验收用例和数据，之后写的补充方法也在这里。处理补充（用进出处或不照做）、看它孵化过哪些分身；孵化在分身页做。方法只来自用户（C-L1）。"
-      },
-      "avatars": {
-        "title": "分身",
-        "intro": "照创意孵化出来、拿去测的那一个。一个分身一生四段：孵化、核出处、测试、交付，都在这一页。测完看每条用例的成稿与各步交回物，验证这一稿。"
-      },
-      "experts": {
-        "title": "专家",
-        "intro": "测试通过、交付到 knowmart 的各版本；交付没成功的在这里重试。"
-      }
-    },
-    "avatarsTitle": "分身",
-    "noAvatars": "还没有分身。到创意页挑一个，或点「孵化一个分身」。",
-    "superseded": "已有更新的分身",
-    "toIdea": "所属创意",
-    "avatarsOfIdea": "它的分身",
+    "expectationsMet": "期望满足 {met}/{total}",
+    "failedStep": "第 {step} 步没过：{checks}",
     "copy": "复制",
     "copied": "已复制",
-    "ideaFilters": {
-      "all": "全部",
-      "todo": "要我们动手",
-      "waiting": "等用户答",
-      "expert": "已出专家"
+    "deliver": "重试交付",
+    "expertStage": {
+      "to_return": "待交回",
+      "awaiting_user": "等用户同意",
+      "declined": "用户不要",
+      "to_review": "待运营审核",
+      "rejected": "审核不过",
+      "to_deliver": "审过，待交付",
+      "listed": "已上架",
+      "stopped": "停用了"
     },
-    "ideaStage": {
-      "amend": "有补充待处理",
-      "hatch": "等孵化",
-      "waiting": "等用户答",
-      "working": "分身在做",
-      "expert": "已出专家"
+    "delivery": {
+      "next": "这一版",
+      "returnHint": "交回：在 web端「审核」里给用户一条待办，用户看成稿与测试结果后定要不要。",
+      "return": "交回用户",
+      "awaitingUser": "已交回，等用户决定要不要这一版。",
+      "reviewHint": "运营审核：核成稿没有目标价、评级类内容（C-L5），核受理单与测试结果对得上。公开要发布主体有资质（在 knowmart 审），没有就留自用。",
+      "reason": "理由（不通过必填）",
+      "approveSelf": "通过：自用",
+      "approvePublic": "通过：申请公开",
+      "reject": "不通过",
+      "backfillReview": "试行期上架的，补一次运营审核记录（不再交付）。",
+      "stopHint": "停用：knowmart 那一版跟着停；之后请不了，已经在跑的不受影响。",
+      "stopReason": "停用理由",
+      "stop": "停用这一版",
+      "noTestRecord": "没有这次测试的记录。"
     },
-    "ideaSteps": {
-      "submit": "提交",
-      "hatch": "孵化",
-      "test": "分身测试",
-      "expert": "专家"
+    "record": {
+      "returned": "交回",
+      "userGate": "用户同意门",
+      "review": "运营审核门",
+      "listed": "上架",
+      "stopped": "停用",
+      "notYet": "还没有",
+      "accepted": "要了",
+      "declined": "不要",
+      "approved": {
+        "self": "通过（自用）",
+        "public": "通过（申请公开）"
+      },
+      "rejected": "不通过：{reason}",
+      "listedLine": "{at} · knowmart 编号 {id} · {status}"
     },
-    "ideaNext": {
-      "amend": "下一步：处理用户写的补充（用进下一个分身的出处，或写理由不照做）",
-      "hatch": "下一步：照这个创意孵化一个分身",
-      "waiting": "测试中的问题在用户那里，等用户回答",
-      "working": "分身在测：到分身页看进度",
-      "expert": "已出专家；要改版就孵化下一个分身"
+    "name": {
+      "timeline": "记录",
+      "amendments": "补充方法（已取消，只读）",
+      "summary": "每个过程最新的一项"
     },
-    "hatch": {
-      "button": "孵化一个分身",
-      "forIdea": "照这个创意孵化一个分身",
-      "title": "孵化",
-      "pick": "孵化哪个创意",
-      "manual": "手工孵化：贴专家清单",
-      "hint": "现在只有手工孵化：清单在外面写好，贴进来校验后孵出。以后的辅助、自动孵化，出处表、缺口与用户的答复、清单候选各版，也放在这一块。",
-      "cancel": "先不孵化",
-      "next": "孵化下一个分身"
+    "summary": {
+      "accepted": "受理了",
+      "rejected": "不受理",
+      "acceptancePending": "待受理"
     },
-    "side": {
-      "expand": "展开对照材料",
-      "collapse": "收起对照材料",
-      "resize": "拖动改宽度（左右键也行）",
-      "open": "对照材料"
+    "event": {
+      "submitted": "申请：出创意 v1",
+      "revised": "修改：出创意 v{version}",
+      "accepted": "受理：创意 v{version} 受理",
+      "rejected": "受理：创意 v{version} 不受理",
+      "draft": "孵化：创意 v{version} → 准专家 {label}",
+      "reviewRequested": "孵化：请用户审核准专家 {label}",
+      "reviewOk": "审核：用户说准专家 {label} 行",
+      "reviewNotOk": "审核：用户说准专家 {label} 不行",
+      "testStarted": "测试：准专家 {label} → 测试 {number}",
+      "testFinished": "测试：测试 {number} {status}",
+      "expert": "测试：测试 {number} 通过 → 专家第 {version} 版",
+      "returned": "交回：专家第 {version} 版通知用户",
+      "userAccepted": "用户同意门：第 {version} 版要了",
+      "userDeclined": "用户同意门：第 {version} 版不要",
+      "approved": "运营审核：第 {version} 版{listing}",
+      "reviewRejected": "运营审核：第 {version} 版不通过",
+      "listed": "上架：第 {version} 版交 knowmart",
+      "stopped": "停用：第 {version} 版"
+    },
+    "amendments": {
+      "title": "用户以前写的补充方法（SDD 0035，已取消）：留作历史，出处照旧可查。以后改方法就是改创意、出新版本。",
+      "status": {
+        "open": "没用上",
+        "used": "用进了第 {revision} 稿",
+        "declined": "没照做：{reason}"
+      }
+    },
+    "pages": {
+      "acceptance": {
+        "title": "受理",
+        "intro": "选创意的某一版，查三样写受理单：不是投资建议类（C-L5）、测试数据有权用（C-L2）、归这类专家能做的范围（C-L1）。"
+      },
+      "incubation": {
+        "title": "孵化",
+        "intro": "选受理了的创意版本，贴清单孵出准专家；可以请用户审核。核过出处的准专家才能去测。"
+      },
+      "tests": {
+        "title": "测试",
+        "intro": "拿核过出处的准专家按用例跑一次，每次一个新编号。平台出错重测同一位准专家；通过即出专家。"
+      },
+      "delivery": {
+        "title": "交付",
+        "intro": "交回用户 → 用户同意 → 运营审核 → 交 knowmart。上架了的可以停用；「全部专家」列出每个名称的每一版。"
+      },
+      "name": {
+        "title": "名称",
+        "intro": "一个名称的一生：每个过程最新的一项，和按时间排的记录。"
+      }
+    },
+    "todo": {
+      "title": "等我们",
+      "line": "{name} · {n}"
     },
     "outputs": {
       "title": "成稿与各步交回物",
@@ -334,25 +417,40 @@
       "fetchAgain": "补取产出",
       "notYet": "还没取到：点「补取产出」再取一次。",
       "consentNeeded": "这个创意是在旧的测试数据说明下提交的：用户在 web端同意新说明之前，测试产出不取、不显示。",
-      "fromStep": "第 {step} 步写的"
+      "fromStep": "第 {n} 步「{title}」写的",
+      "acceptance": "受理单",
+      "rules": "规则出处",
+      "manifest": "清单原文",
+      "report": "测试结果与产出",
+      "delivery": "交回与上架记录",
+      "fromStepId": "{step} 这一步写的"
     },
-    "experts": {
-      "title": "专家",
-      "none": "还没有交付的专家。",
-      "filters": {
-        "live": "可用",
-        "failed": "交付没成功"
+    "questions": {
+      "title": "待回答的问题",
+      "intro": "测试跑到要人决定的地方停下了，答完接着跑。审批由我们答；反问和开步前的提问先归用户本人（C-L1）。确认只是跑法问题（不涉及口径、取舍、阈值）的，写一句理由改由我们答；我们答的不算用户确认，不记进答过的提问、不进规则出处。",
+      "failed": "没成功（{code}）。",
+      "kind": {
+        "tool_approval": "审批",
+        "question": "反问",
+        "ask_before": "开步前的提问"
       },
-      "version": "第 {version} 版",
-      "knowbotId": "knowmart 编号 {id}",
-      "deliveredAt": "交付于 {at}",
-      "deliveryFailed": "测试通过，交付没成功",
-      "from": "出自 {avatar}",
-      "versions": "各版本"
+      "where": "用例 {case} · 准专家 {label}",
+      "withUser": "在用户那里，等用户回答。",
+      "approve": "批准",
+      "deny": "拒绝",
+      "ownWords": "自己写答案",
+      "answer": "回答",
+      "toUser": "转给用户",
+      "judgementHint": "涉及投资判断（口径、取舍、阈值之类）的，请转回用户。",
+      "take": "改由我们答",
+      "takeReason": "为什么这只是跑法问题（一句话）",
+      "taken": "改由我们答：{reason}"
     },
-    "todo": {
-      "title": "要我们动手",
-      "line": "{name} · {n}"
+    "side": {
+      "expand": "展开对照材料",
+      "collapse": "收起对照材料",
+      "resize": "拖动改宽度（左右键也行）",
+      "open": "对照材料"
     }
   }
 }

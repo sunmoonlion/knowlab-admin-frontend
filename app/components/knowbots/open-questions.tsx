@@ -18,7 +18,7 @@ const KEY = ['admin', 'knowbots'] as const
 
 // 测试中待人决定的问题（SDD 0027 §3.4，有人值守）。审批由我们答；反问与开步前的提问
 // 建出来就归用户本人（C-L1，审读第 2 条），这里只看不答；确认只是跑法问题的，写一句
-// 理由改由我们答，答错了方向还能转回用户。列表由页面按想法分好传进来，挨着那份草稿显示。
+// 理由改由我们答，答错了方向还能转回用户。列表由测试栏按那次测试的准专家挑好传进来。
 export function OpenQuestions({
   questions,
   csrfToken,
@@ -96,7 +96,7 @@ function QuestionCard({ question: q, busy, onAnswer, onToUser, onTake }: CardPro
   return (
     <article className="rounded-xl border border-amber-300 p-4 text-sm">
       <p className="text-muted-foreground">
-        {t(`kind.${q.kind}`)} · {q.title} · {t('where', { case: q.case_id, version: q.version })}
+        {t(`kind.${q.kind}`)} · {q.title} · {t('where', { case: q.case_id, label: q.label })}
       </p>
       <p className="mt-1 whitespace-pre-wrap">{q.text}</p>
       {q.last_error ? <p className="text-destructive">{q.last_error}</p> : null}
