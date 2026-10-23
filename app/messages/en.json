@@ -198,6 +198,8 @@
     "startHint": "The budget is split evenly across cases; the timeout is shared by all cases of the run and excludes time spent waiting for answers.",
     "runningSince": "Started {at}, running for {minutes} minutes",
     "acceptedWaiting": "Accepted, not started yet: waiting for the test computer",
+    "blockedOffline": "Accepted, not started yet: the test computer is offline; waiting for it to connect",
+    "blockedFolder": "Accepted, not started yet: the test computer has not prepared a clean folder",
     "submittedAt": "Submitted {at}; press “Refresh result” to see whether it started",
     "refreshedAt": "Last refreshed {at}",
     "testingHint": "After a refresh the line above says which case and step it is on; a case shows up in the result below only when it has finished.",

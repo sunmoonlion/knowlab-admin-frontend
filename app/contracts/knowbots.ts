@@ -104,6 +104,8 @@ const adminDraftSchema = z
     progress: progressSchema.nullable().optional(),
     run_status: z.string().max(32).nullable().optional(),
     run_running_since: z.string().nullable().optional(),
+    // 已受理还没开跑时在等什么（账 141）；旧后端没有这一项
+    run_blocked: z.enum(['computer_offline', 'folder_not_ready']).nullable().optional(),
     // 核对出处前要处理的补充；这一稿建好后才写的条数（下一稿处理）。旧后端没有这两项
     amendments_open: z.array(z.string().uuid()).max(200).optional(),
     amendments_newer: z.number().int().min(0).optional(),

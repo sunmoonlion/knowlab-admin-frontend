@@ -592,7 +592,11 @@ function DraftActions({
       <div className="space-y-3">
         <p>
           {draft.run_status === 'accepted'
-            ? t('acceptedWaiting')
+            ? draft.run_blocked === 'computer_offline'
+              ? t('blockedOffline')
+              : draft.run_blocked === 'folder_not_ready'
+                ? t('blockedFolder')
+                : t('acceptedWaiting')
             : running
               ? t('runningSince', {
                   at: when(running),

@@ -198,6 +198,8 @@
     "startHint": "预算按用例平分；超时是整次测试几条用例共用的，等人回答的时间不算。",
     "runningSince": "开跑于 {at}，已跑 {minutes} 分钟",
     "acceptedWaiting": "已受理，还没开跑：等测试电脑接手",
+    "blockedOffline": "已受理，还没开跑：测试电脑不在线，等它连上",
+    "blockedFolder": "已受理，还没开跑：测试电脑还没给出干净的目录",
     "submittedAt": "{at} 提交，点「刷新结果」看开没开跑",
     "refreshedAt": "上次刷新 {at}",
     "testingHint": "刷新后上面会写跑到第几条、第几步；一条用例跑完，下面的结果里才出现一行。",

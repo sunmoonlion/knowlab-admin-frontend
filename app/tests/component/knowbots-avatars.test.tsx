@@ -567,6 +567,25 @@ describe('分身', () => {
     expect(await screen.findByText(/^已受理，还没开跑：等测试电脑接手/)).toBeInTheDocument()
     expect(screen.queryByText(/已跑/)).toBeNull()
     unmount()
+    // 账 141：运行方写明了在等什么，就照说
+    for (const [blocked, text] of [
+      ['computer_offline', /^已受理，还没开跑：测试电脑不在线，等它连上/],
+      ['folder_not_ready', /^已受理，还没开跑：测试电脑还没给出干净的目录/],
+    ] as const) {
+      vi.mocked(fetchDrafts).mockResolvedValue([
+        draft({
+          status: 'testing',
+          rules_reviewed_by: 'admin-1',
+          run_attempts: 1,
+          run_status: 'accepted',
+          run_running_since: null,
+          run_blocked: blocked,
+        }),
+      ])
+      const page = renderPage()
+      expect(await screen.findByText(text)).toBeInTheDocument()
+      page.unmount()
+    }
     vi.mocked(fetchDrafts).mockResolvedValue([
       draft({
         status: 'testing',
