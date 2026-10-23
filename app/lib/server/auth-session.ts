@@ -6,6 +6,13 @@ import { redirect } from 'next/navigation'
 import { serverEnv } from '@/env/server'
 import { loadBrowserSession } from '@/lib/auth/browser-session'
 
+// 能建草稿、核出处、交付、退回的角色：所有者 2026-10-23 定现在 admin、operator 都能；admin 比 operator 多哪些
+// 权限以后定，定了就只留 admin。和后端 auth.OPERATOR_SCOPES 一起改。
+const RELEASE_ROLES: readonly string[] = ['admin', 'operator']
+export function canRelease(roles: readonly string[]): boolean {
+  return roles.some((role) => RELEASE_ROLES.includes(role))
+}
+
 export async function getBrowserSession() {
   const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()])
   const cookieHeader = cookieStore

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
 import { AvatarsView } from '@/components/knowbots/avatars-view'
-import { requireBrowserSession } from '@/lib/server/auth-session'
+import { canRelease, requireBrowserSession } from '@/lib/server/auth-session'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -33,7 +33,7 @@ export default async function AvatarsPage({
       </div>
       <AvatarsView
         csrfToken={session.csrf_token}
-        canRelease={session.user.roles.includes('admin')}
+        canRelease={canRelease(session.user.roles)}
         picked={one(query.draft)}
         hatchFor={one(query.hatch)}
       />
