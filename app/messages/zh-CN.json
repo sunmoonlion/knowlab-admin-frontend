@@ -330,6 +330,14 @@
       "rejected": "不通过：{reason}",
       "listedLine": "{at} · knowmart 编号 {id} · {status}"
     },
+    "listingStatus": {
+      "self": "自用",
+      "pending": "在 knowmart 等上架审核",
+      "public": "已公开",
+      "category_needed": "留自用：卖家还没在 knowmart 选类目，选了再申请公开",
+      "not_qualified": "留自用：卖家的发布主体或类目资质还没过",
+      "taken_down": "被平台下架"
+    },
     "name": {
       "timeline": "记录",
       "amendments": "补充方法（已取消，只读）",

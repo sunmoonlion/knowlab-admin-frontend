@@ -330,6 +330,14 @@
       "rejected": "rejected: {reason}",
       "listedLine": "{at} · knowmart id {id} · {status}"
     },
+    "listingStatus": {
+      "self": "Private",
+      "pending": "Waiting for listing review in knowmart",
+      "public": "Public",
+      "category_needed": "Kept private: the seller has not chosen a category in knowmart yet",
+      "not_qualified": "Kept private: the seller's publisher or category license is not approved yet",
+      "taken_down": "Taken down by the platform"
+    },
     "name": {
       "timeline": "Record",
       "amendments": "Amendments (retired, read only)",

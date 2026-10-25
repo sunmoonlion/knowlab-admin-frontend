@@ -322,7 +322,10 @@ function Record({ expert }: { expert: Expert }) {
         ? t('record.listedLine', {
             at: when(expert.listed_at),
             id: expert.knowbot_id ?? '—',
-            status: expert.listing_status ?? '—',
+            status:
+              expert.listing_status && t.has(`listingStatus.${expert.listing_status}`)
+                ? t(`listingStatus.${expert.listing_status}`)
+                : (expert.listing_status ?? '—'),
           })
         : (expert.delivery_error ?? t('record.notYet')),
     ],
