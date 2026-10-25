@@ -249,6 +249,12 @@ function Actions({ expert, csrfToken, onDone, onError }: CardProps & { expert: E
               {reviewForm}
             </div>
           ) : null}
+          {/* 补审判了不通过、停用没成：照实说，下面的停用可以重试（Fable 评审 D02） */}
+          {expert.trial && expert.review_approved === false ? (
+            <p role="alert" className="text-destructive">
+              {t('delivery.backfillRejectedNotStopped')}
+            </p>
+          ) : null}
           <div className="space-y-2">
             <p className="text-muted-foreground">{t('delivery.stopHint')}</p>
             <label className="block">
