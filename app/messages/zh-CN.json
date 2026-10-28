@@ -170,7 +170,6 @@
     "tabs": {
       "method": "方法",
       "cases": "验收用例",
-      "datasets": "用户的数据",
       "answered": "答过的问题"
     },
     "noCases": "没有验收用例。",
@@ -180,8 +179,6 @@
       "value": "应当是",
       "tolerance": "允许误差"
     },
-    "noDatasets": "这个用户还没有上传数据。",
-    "bindingsHint": "清单的 data_bindings 照这里写：",
     "noAnswered": "测试中还没有答过的问题。",
     "answeredTitle": "测试中答过的问题（只有用户答的写进下一位准专家的规则出处）",
     "answeredBy": {
@@ -189,7 +186,7 @@
       "user": "用户答的",
       "operatorWhy": "我们答的（{reason}）"
     },
-    "manifest": "专家清单（knowbot-manifest/v1，JSON）",
+    "manifest": "专家清单（knowbot-manifest/v2，JSON）",
     "badJson": "不是合法的 JSON。",
     "createDraft": "孵出准专家",
     "hatch": {

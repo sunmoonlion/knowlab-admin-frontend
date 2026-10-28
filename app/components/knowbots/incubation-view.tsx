@@ -7,7 +7,7 @@ import { useState } from 'react'
 import type { Detail, Draft, IncubationItem } from '@/contracts/knowbots'
 import { createDraft, draftAction, fetchDetail, fetchIncubation } from '@/lib/knowbots/client'
 
-import { AnsweredList, Datasets, ManifestText, Rules, VersionBody } from './reference'
+import { AnsweredList, ManifestText, Rules, VersionBody } from './reference'
 import {
   Badge,
   Card,
@@ -145,28 +145,18 @@ function useDetail(requestId: string) {
   })
 }
 
-/** 写清单时要对照的：用户的数据（绑定照它写）、测试中用户答过的问题（进规则出处）。 */
+/** 写清单时要对照的：测试中用户答过的问题（进规则出处）。清单 v2 不绑数据（测试集另记）。 */
 function Materials({ detail }: { detail: Detail }) {
   const t = useTranslations('knowbots')
   return (
-    <>
-      <details className="bg-card rounded-xl border p-4 text-sm shadow-sm">
-        <summary className="cursor-pointer font-medium">
-          {t('tabs.datasets')} · {detail.datasets.length}
-        </summary>
-        <div className="mt-3">
-          <Datasets datasets={detail.datasets} />
-        </div>
-      </details>
-      <details className="bg-card rounded-xl border p-4 text-sm shadow-sm">
-        <summary className="cursor-pointer font-medium">
-          {t('tabs.answered')} · {detail.answered.length}
-        </summary>
-        <div className="mt-3">
-          <AnsweredList answered={detail.answered} />
-        </div>
-      </details>
-    </>
+    <details className="bg-card rounded-xl border p-4 text-sm shadow-sm">
+      <summary className="cursor-pointer font-medium">
+        {t('tabs.answered')} · {detail.answered.length}
+      </summary>
+      <div className="mt-3">
+        <AnsweredList answered={detail.answered} />
+      </div>
+    </details>
   )
 }
 

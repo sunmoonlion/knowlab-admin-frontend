@@ -212,16 +212,6 @@ const amendmentSchema = z.object({
   declined_by: z.string().nullable(),
 })
 
-const datasetSchema = z.object({
-  dataset_id: z.string().uuid(),
-  name: z.string(),
-  version: z.string(),
-  content_type: z.string(),
-  size_bytes: z.number().int(),
-  sha256: z.string().regex(/^[0-9a-f]{64}$/),
-  created_at: when,
-})
-
 const answeredSchema = z.object({
   question_id: z.string().uuid(),
   kind: z.enum(['tool_approval', 'question', 'ask_before']),
@@ -255,7 +245,6 @@ export const detailSchema = z.object({
   experts: z.array(expertSchema),
   timeline: z.array(eventSchema),
   amendments: z.array(amendmentSchema),
-  datasets: z.array(datasetSchema),
   answered: z.array(answeredSchema),
 })
 
@@ -439,7 +428,6 @@ export type DeliveryItem = z.infer<typeof deliveryItem>
 export type Question = z.infer<typeof questionSchema>
 export type CaseResult = z.infer<typeof caseResultSchema>
 export type Amendment = z.infer<typeof amendmentSchema>
-export type Dataset = z.infer<typeof datasetSchema>
 export type Answered = z.infer<typeof answeredSchema>
 export type Event = z.infer<typeof eventSchema>
 export type Outputs = z.infer<typeof outputsSchema>

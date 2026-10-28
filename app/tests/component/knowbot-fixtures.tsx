@@ -181,17 +181,6 @@ export function detail(overrides: Partial<Detail> = {}): Detail {
     experts: [],
     timeline: [],
     amendments: [],
-    datasets: [
-      {
-        dataset_id: '3b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
-        name: '年报.pdf',
-        version: '1',
-        content_type: 'application/pdf',
-        size_bytes: 10,
-        sha256: 'a'.repeat(64),
-        created_at: null,
-      },
-    ],
     answered: [],
     ...overrides,
   }

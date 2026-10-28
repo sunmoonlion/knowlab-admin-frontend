@@ -9,7 +9,6 @@ import type {
   Amendment,
   Answered,
   CaseResult,
-  Dataset,
   Draft,
   Idea,
   Test,
@@ -275,32 +274,6 @@ export function AcceptanceSheet({ acceptance }: { acceptance: Acceptance }) {
       <p className="text-muted-foreground text-xs">
         {t('byAt', { who: acceptance.decided_by, at: when(acceptance.decided_at) })}
       </p>
-    </div>
-  )
-}
-
-export function Datasets({ datasets }: { datasets: Dataset[] }) {
-  const t = useTranslations('knowbots')
-  if (datasets.length === 0) return <p className="text-muted-foreground">{t('noDatasets')}</p>
-  const bindings = datasets.map((d) => ({
-    dataset_id: d.dataset_id,
-    version: d.version,
-    sha256: d.sha256,
-  }))
-  return (
-    <div className="space-y-3">
-      <ul className="space-y-1">
-        {datasets.map((d) => (
-          <li key={d.dataset_id} className="font-mono text-xs break-all">
-            {d.name} ·{' '}
-            {JSON.stringify({ dataset_id: d.dataset_id, version: d.version, sha256: d.sha256 })}
-          </li>
-        ))}
-      </ul>
-      <p className="text-muted-foreground">{t('bindingsHint')}</p>
-      <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs">
-        {JSON.stringify(bindings, null, 2)}
-      </pre>
     </div>
   )
 }

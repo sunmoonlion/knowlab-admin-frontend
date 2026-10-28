@@ -170,7 +170,6 @@
     "tabs": {
       "method": "Method",
       "cases": "Acceptance cases",
-      "datasets": "User's data",
       "answered": "Answered questions"
     },
     "noCases": "No acceptance cases.",
@@ -180,8 +179,6 @@
       "value": "Should be",
       "tolerance": "Tolerance"
     },
-    "noDatasets": "This user has not uploaded any data.",
-    "bindingsHint": "Write the manifest's data_bindings like this:",
     "noAnswered": "No questions answered during tests yet.",
     "answeredTitle": "Questions answered during tests (only the user's answers go into the next candidate's rule sources)",
     "answeredBy": {
@@ -189,7 +186,7 @@
       "user": "answered by the user",
       "operatorWhy": "answered by us ({reason})"
     },
-    "manifest": "Expert manifest (knowbot-manifest/v1, JSON)",
+    "manifest": "Expert manifest (knowbot-manifest/v2, JSON)",
     "badJson": "Not valid JSON.",
     "createDraft": "Incubate the candidate",
     "hatch": {

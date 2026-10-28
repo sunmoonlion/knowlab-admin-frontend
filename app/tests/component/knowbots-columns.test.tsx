@@ -71,7 +71,7 @@ const BRIEF = { request_id: REQUEST, title: '财务分析与预测', owner_subje
 beforeEach(() => {
   vi.resetAllMocks()
   vi.mocked(fetchDetail).mockResolvedValue(detail())
-  vi.mocked(fetchManifest).mockResolvedValue({ schema: 'knowbot-manifest/v1' })
+  vi.mocked(fetchManifest).mockResolvedValue({ schema: 'knowbot-manifest/v2' })
   vi.mocked(fetchOutputs).mockResolvedValue(outputs())
   vi.mocked(fetchQuestions).mockResolvedValue([])
 })
