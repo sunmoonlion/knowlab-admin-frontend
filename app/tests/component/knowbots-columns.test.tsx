@@ -252,6 +252,28 @@ describe('测试', () => {
     )
   })
 
+  it('发起时作者没有能测的电脑：说清楚要作者先去 knowbench 接入', async () => {
+    vi.mocked(fetchTests).mockResolvedValue([
+      {
+        ...BRIEF,
+        category: 'to_start',
+        draft: draft({ blocked: null, rules_reviewed_by: 'admin-1' }),
+        test: null,
+      },
+    ])
+    vi.mocked(startTest).mockRejectedValue(
+      new ApiClientError(409, {
+        code: 'author_has_no_computer',
+        message_key: 'errors.requestFailed',
+        retryable: false,
+        correlation_id: 'c',
+      }),
+    )
+    renderWith(<TestsView csrfToken={CSRF} />)
+    fireEvent.click(await screen.findByRole('button', { name: k.startTest }))
+    expect(await screen.findByText(k.errorCodes.author_has_no_computer)).toBeInTheDocument()
+  })
+
   it('在跑的：进度、刷新、判定卡住', async () => {
     vi.mocked(fetchTests).mockResolvedValue([
       {
