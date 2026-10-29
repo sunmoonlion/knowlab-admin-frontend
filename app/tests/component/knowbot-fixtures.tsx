@@ -3,7 +3,7 @@ import { render } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 
 import type {
-  AcceptanceItem,
+  FormalItem,
   DeliveryItem,
   Detail,
   Draft,
@@ -50,14 +50,15 @@ export function version(overrides: Partial<Version> = {}): Version {
   }
 }
 
-export function acceptanceItem(overrides: Partial<AcceptanceItem> = {}): AcceptanceItem {
-  return { ...BRIEF, category: 'pending', ...version(), ...overrides }
+export function acceptanceItem(overrides: Partial<FormalItem> = {}): FormalItem {
+  return { ...BRIEF, acceptance_kind: 'formal', category: 'pending', ...version(), ...overrides }
 }
 
 export function draft(overrides: Partial<Draft> = {}): Draft {
   return {
     draft_id: DRAFT,
     label: '2.3',
+    mode: 'platform',
     version: '2',
     revision: 3,
     request_version: 2,
@@ -152,6 +153,8 @@ export function detail(overrides: Partial<Detail> = {}): Detail {
     },
     consent_version: 2,
     consent_current: 2,
+    incubation_mode: 'platform',
+    grants: [],
     versions: [
       version({
         acceptance: {
@@ -161,6 +164,7 @@ export function detail(overrides: Partial<Detail> = {}): Detail {
           trial: true,
           checks: {},
           decided_by: 'system:trial',
+          kind: 'formal',
         },
       }),
       version({
@@ -173,6 +177,7 @@ export function detail(overrides: Partial<Detail> = {}): Detail {
           trial: false,
           checks: { 'C-L5': { ok: true, note: '' } },
           decided_by: 'admin-1',
+          kind: 'formal',
         },
       }),
     ],

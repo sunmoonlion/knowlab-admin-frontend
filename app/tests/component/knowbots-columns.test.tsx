@@ -9,7 +9,7 @@ import { TestsView } from '@/components/knowbots/tests-view'
 import { ApiClientError } from '@/lib/api/client'
 import {
   accept,
-  createDraft,
+  decideLight,
   draftAction,
   expertAction,
   fetchAcceptance,
@@ -20,6 +20,7 @@ import {
   fetchOutputs,
   fetchQuestions,
   fetchTests,
+  handBack,
   reviewExpert,
   startTest,
   stopExpert,
@@ -45,7 +46,7 @@ import {
 vi.mock('@/lib/knowbots/client', () => ({
   accept: vi.fn(),
   answerQuestion: vi.fn(),
-  createDraft: vi.fn(),
+  decideLight: vi.fn(),
   draftAction: vi.fn(),
   expertAction: vi.fn(),
   fetchAcceptance: vi.fn(),
@@ -56,6 +57,7 @@ vi.mock('@/lib/knowbots/client', () => ({
   fetchOutputs: vi.fn(),
   fetchQuestions: vi.fn(),
   fetchTests: vi.fn(),
+  handBack: vi.fn(),
   questionTake: vi.fn(),
   questionToUser: vi.fn(),
   reviewExpert: vi.fn(),
@@ -146,6 +148,7 @@ describe('受理', () => {
           trial: true,
           checks: { 'C-L5': { ok: true, note: '试行期自动受理' } },
           decided_by: 'system:trial',
+          kind: 'formal',
         },
       }),
     ])
@@ -158,18 +161,54 @@ describe('受理', () => {
   })
 })
 
+describe('轻受理（SDD 0046 第四节）', () => {
+  it('作者交平台测的：只看那一位准专家与上限；不接要写理由，接了进测试栏', async () => {
+    vi.mocked(fetchAcceptance).mockResolvedValue([
+      {
+        ...BRIEF,
+        acceptance_kind: 'light',
+        category: 'light_pending',
+        draft: draft({ mode: 'self' }),
+        grant: {
+          grant_id: '33333333-3333-4333-8333-333333333333',
+          kind: 'test',
+          draft_id: DRAFT,
+          state: 'pending',
+          budget_limit: '8.50',
+          granted_at: '2026-10-29T08:00:00Z',
+          expires_at: null,
+          decided_at: null,
+          reason: null,
+          ended_at: null,
+          basis: 'platform:knowlab:test:33333333-3333-4333-8333-333333333333',
+          decided_by: null,
+          ended_by: null,
+        },
+      },
+    ])
+    vi.mocked(decideLight).mockResolvedValue({} as never)
+    renderWith(<AcceptanceView csrfToken={CSRF} />)
+    // 第一条自动打开
+    expect(await screen.findByText(k.light.hint)).toBeInTheDocument()
+    expect(screen.getByText(/作者设的上限 8.50 元/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: k.light.decline })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: k.light.accept }))
+    await waitFor(() =>
+      expect(decideLight).toHaveBeenCalledWith(
+        '33333333-3333-4333-8333-333333333333',
+        { accepted: true },
+        CSRF,
+      ),
+    )
+  })
+})
+
 describe('孵化', () => {
-  it('待孵化：只能选受理了的版本，读原文，贴清单孵出', async () => {
+  it('待孵化：读受理了的版本原文，到工作稿里孵化（不再贴清单），做完交还作者', async () => {
     vi.mocked(fetchIncubation).mockResolvedValue([
       { ...BRIEF, category: 'todo', latest_version: 2, latest_accepted: 2, draft: null },
     ])
-    vi.mocked(createDraft).mockResolvedValue({
-      contract_version: 1,
-      draft_id: DRAFT,
-      version: '2',
-      revision: 3,
-      request_version: 2,
-    })
+    vi.mocked(handBack).mockResolvedValue(undefined)
     renderWith(<IncubationView csrfToken={CSRF} />)
     const pick = await screen.findByLabelText(k.hatch.pick)
     expect(
@@ -178,9 +217,14 @@ describe('孵化', () => {
         .map((o) => o.textContent),
     ).toEqual(['创意 v1', '创意 v2'])
     expect(screen.getByText('# 第二版方法')).toBeInTheDocument() // 默认最新受理了的
-    fireEvent.change(screen.getByLabelText(k.manifest), { target: { value: '{"schema": 1}' } })
-    fireEvent.click(screen.getByRole('button', { name: k.createDraft }))
-    await waitFor(() => expect(createDraft).toHaveBeenCalledWith(REQUEST, { schema: 1 }, 2, CSRF))
+    expect(screen.queryByLabelText(k.manifest)).toBeNull()
+    expect(screen.getByRole('link', { name: k.hatch.openEditor })).toHaveAttribute(
+      'href',
+      `/names/${REQUEST}/workdraft`,
+    )
+    fireEvent.click(screen.getByRole('button', { name: k.hatch.handBack }))
+    fireEvent.click(screen.getByRole('button', { name: k.hatch.handBackYes }))
+    await waitFor(() => expect(handBack).toHaveBeenCalledWith(REQUEST, CSRF))
   })
 
   it('准专家：请用户审核、核出处；规则出处与清单在右边', async () => {
@@ -241,12 +285,14 @@ describe('测试', () => {
     expect(await screen.findByText(k.blocked.rules_not_reviewed)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: k.startTest })).toBeDisabled()
     fireEvent.click(screen.getByText('准专家 2.4'))
-    fireEvent.change(await screen.findByLabelText(k.budget), { target: { value: '30' } })
+    // 费用上限是作者在授权里设的，这里不填（decisions ⑯）
+    expect(await screen.findByText(k.startHint)).toBeInTheDocument()
+    expect(screen.queryByLabelText(k.budget)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: k.startTest }))
     await waitFor(() =>
       expect(startTest).toHaveBeenCalledWith(
         '7b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
-        { budget_limit: '30', timeout_seconds: 1800 },
+        { timeout_seconds: 1800 },
         CSRF,
       ),
     )

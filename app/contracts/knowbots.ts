@@ -42,6 +42,7 @@ const sixAnswersSchema = z.object({
 export const ideaSchema = z.union([
   z.object({ kind: z.literal('six_questions'), answers: sixAnswersSchema }),
   z.object({ kind: z.literal('skill'), skill: z.string() }),
+  z.object({ kind: z.literal('question'), question: z.string() }),
 ])
 
 const acceptanceSchema = z.object({
@@ -51,7 +52,28 @@ const acceptanceSchema = z.object({
   trial: z.boolean(),
   checks: z.record(z.string(), z.object({ ok: z.boolean(), note: z.string() })),
   decided_by: z.string(),
+  // formal：正式受理；self：作者选了自己来（运营看不到这种，留着类型以防万一）
+  kind: z.enum(['formal', 'self']).default('formal'),
 })
+
+// 作者给平台的一张授权（SDD 0046 第四节）：孵化（请平台孵化）或测试（交平台测这一次）
+export const grantSchema = z.object({
+  grant_id: z.string().uuid(),
+  kind: z.enum(['incubate', 'test']),
+  draft_id: z.string().uuid().nullable(),
+  state: z.enum(['pending', 'active', 'declined', 'revoked', 'ended', 'expired']),
+  budget_limit: z.string(),
+  granted_at: when,
+  expires_at: when,
+  decided_at: when,
+  reason: z.string().nullable(),
+  ended_at: when,
+  basis: z.string(),
+  decided_by: z.string().nullable(),
+  ended_by: z.string().nullable(),
+})
+export type Grant = z.infer<typeof grantSchema>
+export const grantResultSchema = z.object({ contract_version: z.literal(1), grant: grantSchema })
 
 const versionSchema = z.object({
   version: z.number().int().min(1),
@@ -82,6 +104,8 @@ const draftSchema = z.object({
   revision: z.number().int().min(1),
   request_version: z.number().int().min(1),
   status: z.enum(DRAFT_STATUSES),
+  // 作者自己出的（self）还是平台出的（platform）
+  mode: z.enum(['self', 'platform']).default('platform'),
   name: z.string().nullable(),
   created_at: when,
   user_review: userReviewSchema,
@@ -233,6 +257,9 @@ const eventSchema = z
 export const detailSchema = z.object({
   contract_version: z.literal(1),
   ...brief,
+  // 现在的孵化是自己来还是平台；作者给平台的授权
+  incubation_mode: z.enum(['self', 'platform']),
+  grants: z.array(grantSchema),
   runtime: z.string().regex(RUNTIME),
   created_at: when,
   latest_version: z.number().int().min(1),
@@ -258,11 +285,22 @@ export const countsSchema = z.object({
   }),
 })
 
-const acceptanceItem = z.object({
+// 受理栏两种（SDD 0046 第四节）：正式受理（作者请了平台孵化的创意版本）、轻受理（作者交平台测的
+// 那一位准专家，只看它，不看创意）
+const formalItem = z.object({
   ...brief,
+  acceptance_kind: z.literal('formal'),
   category: z.enum(['pending', 'accepted', 'rejected']),
   ...versionSchema.shape,
 })
+const lightItem = z.object({
+  ...brief,
+  acceptance_kind: z.literal('light'),
+  category: z.enum(['light_pending', 'light_accepted', 'light_declined']),
+  draft: draftSchema,
+  grant: grantSchema,
+})
+const acceptanceItem = z.discriminatedUnion('acceptance_kind', [formalItem, lightItem])
 
 const incubationItem = z.object({
   ...brief,
@@ -422,6 +460,8 @@ export type Detail = z.infer<typeof detailSchema>
 export type Counts = z.infer<typeof countsSchema>['counts']
 export type Column = keyof Counts
 export type AcceptanceItem = z.infer<typeof acceptanceItem>
+export type FormalItem = z.infer<typeof formalItem>
+export type LightItem = z.infer<typeof lightItem>
 export type IncubationItem = z.infer<typeof incubationItem>
 export type TestItem = z.infer<typeof testItem>
 export type DeliveryItem = z.infer<typeof deliveryItem>

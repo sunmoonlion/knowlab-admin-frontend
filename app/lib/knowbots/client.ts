@@ -5,10 +5,10 @@ import type { z } from 'zod'
 import {
   acceptanceBoardSchema,
   countsSchema,
-  createdDraftSchema,
   deliveryBoardSchema,
   detailSchema,
   expertMovedSchema,
+  grantResultSchema,
   incubationBoardSchema,
   manifestSchema,
   outputsSchema,
@@ -21,12 +21,25 @@ import {
   type DeliveryItem,
   type Detail,
   type ExpertStage,
+  type Grant,
   type IncubationItem,
   type Outputs,
   type Question,
   type Test,
   type TestItem,
 } from '@/contracts/knowbots'
+import {
+  oneRoundSchema,
+  previewSchema,
+  publishedSchema,
+  roundsSchema,
+  workdraftSchema,
+  type Preview,
+  type ProposalIn,
+  type Published,
+  type Round,
+  type Workdraft,
+} from '@/contracts/workdraft'
 import { requestJson } from '@/lib/api/client'
 
 export class KnowbotContractError extends Error {
@@ -93,20 +106,6 @@ export async function accept(
 
 // ---------- 孵化 ----------
 // 手工孵化：贴清单孵出准专家（以后的辅助、自动孵化也接在这里，SDD 0029）
-export async function createDraft(
-  requestId: string,
-  manifest: unknown,
-  requestVersion: number,
-  csrfToken: string,
-) {
-  const answer = await requestJson(`${BASE}/knowbot-requests/${id(requestId)}/drafts`, {
-    method: 'POST',
-    csrfToken,
-    body: { manifest, request_version: requestVersion },
-  })
-  return parse(createdDraftSchema, answer)
-}
-
 export async function draftAction(
   draftId: string,
   action: 'review-request' | 'rules-review',
@@ -127,7 +126,7 @@ export async function fetchManifest(draftId: string): Promise<Record<string, unk
 // ---------- 测试 ----------
 export async function startTest(
   draftId: string,
-  limits: { budget_limit: string; timeout_seconds: number },
+  limits: { timeout_seconds: number },
   csrfToken: string,
 ): Promise<Test> {
   const answer = await requestJson(`${BASE}/knowbot-drafts/${id(draftId)}/test`, {
@@ -224,4 +223,91 @@ export async function questionTake(
 
 export async function questionToUser(questionId: string, csrfToken: string): Promise<void> {
   await requestJson(`${QUESTIONS}/${id(questionId)}/to-user`, { method: 'POST', csrfToken })
+}
+
+// ---------- 作者授权给平台的（SDD 0046 第四节） ----------
+// 轻受理：接这一次平台测试（进测试栏待发起）或不接（写理由）
+export async function decideLight(
+  grantId: string,
+  body: { accepted: boolean; reason?: string },
+  csrfToken: string,
+): Promise<Grant> {
+  const answer = await requestJson(`${BASE}/knowbot-grants/${id(grantId)}/decision`, {
+    method: 'POST',
+    csrfToken,
+    body,
+  })
+  return parse(grantResultSchema, answer).grant
+}
+
+// 平台孵化做完，把草稿交还作者：孵化授权结束，名称转回作者自己来
+export async function handBack(requestId: string, csrfToken: string): Promise<void> {
+  await requestJson(`${BASE}/knowbot-requests/${id(requestId)}/hand-back`, {
+    method: 'POST',
+    csrfToken,
+  })
+}
+
+// ---------- 平台孵化的工作稿（专家孵化方案第十二节） ----------
+const workdraftOf = (requestId: string) => `${BASE}/knowbot-requests/${id(requestId)}/workdraft`
+
+export async function fetchOperatorWorkdraft(requestId: string): Promise<Workdraft> {
+  return parse(workdraftSchema, await requestJson(workdraftOf(requestId)))
+}
+
+// 改的格子存成提议，作者接受了才进稿
+export async function propose(
+  requestId: string,
+  proposals: ProposalIn[],
+  csrfToken: string,
+): Promise<Workdraft> {
+  const answer = await requestJson(`${workdraftOf(requestId)}/proposals`, {
+    method: 'POST',
+    csrfToken,
+    body: { proposals },
+  })
+  return parse(workdraftSchema, answer)
+}
+
+export async function withdrawProposal(
+  requestId: string,
+  proposalId: string,
+  csrfToken: string,
+): Promise<Workdraft> {
+  const answer = await requestJson(
+    `${workdraftOf(requestId)}/proposals/${id(proposalId)}/withdraw`,
+    { method: 'POST', csrfToken },
+  )
+  return parse(workdraftSchema, answer)
+}
+
+export async function previewOperator(requestId: string): Promise<Preview> {
+  return parse(previewSchema, await requestJson(`${workdraftOf(requestId)}/preview`))
+}
+
+// 平台模式出一版：准专家记平台；最新一版创意要正式受理过，出处只认作者的
+export async function publishOperator(requestId: string, csrfToken: string): Promise<Published> {
+  const answer = await requestJson(`${workdraftOf(requestId)}/publish`, {
+    method: 'POST',
+    csrfToken,
+  })
+  return parse(publishedSchema, answer)
+}
+
+export async function fetchOperatorRounds(requestId: string): Promise<Round[]> {
+  return parse(roundsSchema, await requestJson(`${workdraftOf(requestId)}/incubations`)).incubations
+}
+
+// 运营发起一轮 AI：在作者的账号、作者的电脑上、用作者的 key，上限是作者设的
+export async function startOperatorRound(
+  requestId: string,
+  body: { action: 'draft' | 'revise'; instruction?: string; step_id?: string },
+  csrfToken: string,
+): Promise<Round> {
+  const answer = await requestJson(`${workdraftOf(requestId)}/incubations`, {
+    method: 'POST',
+    csrfToken,
+    body,
+  })
+  return parse(oneRoundSchema, answer).incubation
 }

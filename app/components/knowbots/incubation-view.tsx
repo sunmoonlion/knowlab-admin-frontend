@@ -5,7 +5,8 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
 import type { Detail, Draft, IncubationItem } from '@/contracts/knowbots'
-import { createDraft, draftAction, fetchDetail, fetchIncubation } from '@/lib/knowbots/client'
+import { Link } from '@/i18n/navigation'
+import { draftAction, fetchDetail, fetchIncubation, handBack } from '@/lib/knowbots/client'
 
 import { AnsweredList, ManifestText, Rules, VersionBody } from './reference'
 import {
@@ -23,9 +24,9 @@ import {
 } from './shared'
 import { SidePanel } from './side-panel'
 
-// 孵化（SDD 0037 第四节）：选受理了的创意版本，写清单、校验、孵出准专家；可以请用户审核
-// （web端「审核」里一条待办），核出处后才能测。本期孵化照旧是手工贴清单（SDD 0029 以后接
-// 辅助、自动孵化），「孵化中（等用户审核、回答）」这一类先有位置。
+// 孵化（SDD 0037 第四节；专家孵化方案第十二节）：作者请了平台孵化、受理过的名称，在同一个
+// 编辑器里改工作稿——改的都是提议，作者接受了才算；出一版是平台模式的准专家。可以请用户看
+// （web端「待办」里一条），核出处后才能测。做完把草稿交还作者。贴清单的老做法已删（decisions 10-29）。
 
 const FILTERS = ['todo', 'in_progress', 'done'] as const
 type Filter = (typeof FILTERS)[number]
@@ -116,11 +117,6 @@ export function IncubationView({
           <Hatch
             key={`hatch:${current.request_id}`}
             item={current}
-            onCreated={async (draftId) => {
-              await onDone()
-              setHatching(null)
-              setPicked(draftId)
-            }}
             onCancel={current.draft ? () => setHatching(null) : undefined}
             {...props}
           />
@@ -160,16 +156,15 @@ function Materials({ detail }: { detail: Detail }) {
   )
 }
 
-/** 孵化：选受理了的创意版本（默认最新的），读它的原文，贴清单孵出准专家。 */
+/** 孵化：读受理了的创意版本，到工作稿里改（改的是提议）、出一版；做完交还作者。 */
 function Hatch({
   item,
-  onCreated,
   onCancel,
   csrfToken,
+  onDone,
   onError,
 }: CardProps & {
   item: IncubationItem
-  onCreated: (draftId: string) => Promise<void>
   onCancel?: () => void
 }) {
   const t = useTranslations('knowbots')
@@ -178,15 +173,10 @@ function Hatch({
   const [chosen, setChosen] = useState<number | null>(null)
   const version =
     accepted.find((v) => v.version === chosen) ?? accepted[accepted.length - 1] ?? null
-  const [manifest, setManifest] = useState('')
-  const [badJson, setBadJson] = useState(false)
-  const create = useMutation({
-    mutationFn: (doc: unknown) =>
-      createDraft(item.request_id, doc, version?.version ?? 0, csrfToken),
-    onSuccess: async (made) => {
-      setManifest('')
-      await onCreated(made.draft_id)
-    },
+  const [confirmBack, setConfirmBack] = useState(false)
+  const back = useMutation({
+    mutationFn: () => handBack(item.request_id, csrfToken),
+    onSuccess: () => onDone(),
     onError,
   })
   return (
@@ -225,49 +215,51 @@ function Hatch({
             <VersionBody version={version} />
           </Card>
           <Materials detail={detail.data} />
-          <Card title={t('hatch.manual')}>
-            <p className="text-muted-foreground mb-3">{t('hatch.hint')}</p>
-            <label className="block">
-              {t('manifest')}
-              <textarea
-                className={`${FIELD} font-mono text-xs`}
-                rows={10}
-                value={manifest}
-                onChange={(e) => {
-                  setBadJson(false)
-                  setManifest(e.target.value)
-                }}
-              />
-            </label>
-            {badJson ? (
-              <p className="text-destructive mt-2" role="alert">
-                {t('badJson')}
-              </p>
-            ) : null}
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="primary-button"
-                disabled={!manifest.trim() || create.isPending}
-                onClick={() => {
-                  let doc: unknown
-                  try {
-                    doc = JSON.parse(manifest)
-                  } catch {
-                    setBadJson(true)
-                    return
-                  }
-                  create.mutate(doc)
-                }}
+          <Card title={t('hatch.editor')}>
+            <p className="text-muted-foreground mb-3">{t('hatch.editorHint')}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href={`/names/${item.request_id}/workdraft`}
+                className="primary-button inline-block"
               >
-                {t('createDraft')}
-              </button>
+                {t('hatch.openEditor')}
+              </Link>
               {onCancel ? (
                 <button type="button" className="secondary-button" onClick={onCancel}>
                   {t('hatch.cancel')}
                 </button>
               ) : null}
             </div>
+          </Card>
+          <Card title={t('hatch.handBack')}>
+            <p className="text-muted-foreground mb-3">{t('hatch.handBackHint')}</p>
+            {confirmBack ? (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="primary-button"
+                  disabled={back.isPending}
+                  onClick={() => back.mutate()}
+                >
+                  {t('hatch.handBackYes')}
+                </button>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => setConfirmBack(false)}
+                >
+                  {t('hatch.cancel')}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setConfirmBack(true)}
+              >
+                {t('hatch.handBack')}
+              </button>
+            )}
           </Card>
         </>
       )}

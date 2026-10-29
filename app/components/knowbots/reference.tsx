@@ -159,6 +159,9 @@ export function Method({ idea }: { idea: Idea }) {
         {idea.skill}
       </pre>
     )
+  // 一句话问题（专家孵化方案第四节）：作者只写了一句，方法由 AI 起草、作者改定
+  if (idea.kind === 'question')
+    return <p className="whitespace-pre-wrap">{t('questionIdea', { question: idea.question })}</p>
   return (
     <dl className="space-y-3">
       {(Object.keys(idea.answers) as (keyof typeof idea.answers)[]).map((k) => (

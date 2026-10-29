@@ -125,15 +125,11 @@ function StartProcess({
   onError,
 }: CardProps & { item: TestItem; draft: Draft }) {
   const t = useTranslations('knowbots')
-  const [budget, setBudget] = useState('20')
   const [timeout, setTimeoutSeconds] = useState('1800')
   const start = useMutation({
     mutationFn: () =>
-      startTest(
-        draft.draft_id,
-        { budget_limit: budget, timeout_seconds: Number(timeout) },
-        csrfToken,
-      ),
+      // 费用上限是作者在授权里设的（decisions ⑯），这里不填
+      startTest(draft.draft_id, { timeout_seconds: Number(timeout) }, csrfToken),
     onSuccess: () => onDone(),
     onError,
   })
@@ -160,10 +156,6 @@ function StartProcess({
           </p>
         ) : null}
         <div className="mt-2 flex flex-wrap items-end gap-3">
-          <label className="w-40">
-            {t('budget')}
-            <input className={FIELD} value={budget} onChange={(e) => setBudget(e.target.value)} />
-          </label>
           <label className="w-40">
             {t('timeout')}
             <input
