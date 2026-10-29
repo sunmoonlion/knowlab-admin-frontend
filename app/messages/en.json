@@ -87,7 +87,8 @@
     "adminOnly": "This step needs the knowlab:release permission (accept, incubate, deliver, end a stuck test). Admin and operator both have it now; otherwise switch accounts.",
     "errorCodes": {
       "author_has_no_computer": "The author has no computer to test on yet: platform tests run on the computer and folder of the author's last own test. Ask the author to connect a computer in knowbench and run one own test in knowlab, then start again.",
-      "test_computer_unavailable": "The author's computer or folder cannot be used now (removed, or the folder is no longer allowed): ask the author to reconnect it in knowbench, then start again."
+      "test_computer_unavailable": "The author's computer or folder cannot be used now (removed, or the folder is no longer allowed): ask the author to reconnect it in knowbench, then start again.",
+      "model_key_missing": "The author has no model key in knowbench yet: platform tests and platform AI rounds run on the author's account with the author's key. Ask the author to add one in knowbench, then start again."
     },
     "category": "Categories",
     "output": "Output",

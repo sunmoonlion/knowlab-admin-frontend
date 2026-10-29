@@ -87,7 +87,8 @@
     "adminOnly": "这一步要 knowlab:release 权限（受理、孵化、交付、判定卡住）。现在 admin、operator 都有；没有的请换账号。",
     "errorCodes": {
       "author_has_no_computer": "作者还没有能测的电脑：平台测试在作者上次自助测试用的那台电脑、那个目录上跑。请作者先去 knowbench 接入一台电脑、在 knowlab 自己测一次，再回来发起。",
-      "test_computer_unavailable": "作者那台电脑或那个目录现在用不了（移除了、目录不在白名单里）：请作者先去 knowbench 重新接入，再回来发起。"
+      "test_computer_unavailable": "作者那台电脑或那个目录现在用不了（移除了、目录不在白名单里）：请作者先去 knowbench 重新接入，再回来发起。",
+      "model_key_missing": "作者还没在 knowbench 填模型 key：平台测试、平台发起的 AI 一轮都在作者的账号下用作者的 key 跑。请作者先去 knowbench 填好，再回来发起。"
     },
     "category": "大类",
     "output": "输出",

@@ -33,9 +33,14 @@ export function useCounts(enabled: boolean) {
   return enabled && counts.data ? counts.data : null
 }
 
-// 认得的错误码说清楚怎么办：平台测试在作者的电脑上跑（decisions ⑯），作者还没接入电脑、或那台
-// 电脑与目录用不了，要作者先去 knowbench 接入
-export const KNOWN_ERRORS = ['author_has_no_computer', 'test_computer_unavailable'] as const
+// 认得的错误码说清楚怎么办：平台测试、平台发起的 AI 一轮在作者的电脑上、用作者的 key 跑
+// （decisions ⑯）。作者还没接入电脑、或那台电脑与目录用不了，要作者先去 knowbench 接入；作者还没
+// 填模型 key 的发起前就拦（SDD 0046 第三节），要作者先去 knowbench 填
+export const KNOWN_ERRORS = [
+  'author_has_no_computer',
+  'test_computer_unavailable',
+  'model_key_missing',
+] as const
 
 /** 动作的结果：成了刷新四栏共用的数据，没成说为什么（没有 knowlab:release 的要说清楚）。 */
 export function useFeedback() {

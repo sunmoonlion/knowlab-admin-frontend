@@ -320,6 +320,28 @@ describe('测试', () => {
     expect(await screen.findByText(k.errorCodes.author_has_no_computer)).toBeInTheDocument()
   })
 
+  it('发起时作者还没填模型 key：说清楚要作者先去 knowbench 填（SDD 0046 第三节）', async () => {
+    vi.mocked(fetchTests).mockResolvedValue([
+      {
+        ...BRIEF,
+        category: 'to_start',
+        draft: draft({ blocked: null, rules_reviewed_by: 'admin-1' }),
+        test: null,
+      },
+    ])
+    vi.mocked(startTest).mockRejectedValue(
+      new ApiClientError(409, {
+        code: 'model_key_missing',
+        message_key: 'errors.requestFailed',
+        retryable: false,
+        correlation_id: 'c',
+      }),
+    )
+    renderWith(<TestsView csrfToken={CSRF} />)
+    fireEvent.click(await screen.findByRole('button', { name: k.startTest }))
+    expect(await screen.findByText(k.errorCodes.model_key_missing)).toBeInTheDocument()
+  })
+
   it('在跑的：进度、刷新、判定卡住', async () => {
     vi.mocked(fetchTests).mockResolvedValue([
       {
