@@ -11,8 +11,9 @@ import {
   accept,
   decideLight,
   draftAction,
-  expertAction,
+  returnExpert,
   fetchAcceptance,
+  fetchCategories,
   fetchDelivery,
   fetchDetail,
   fetchIncubation,
@@ -21,7 +22,9 @@ import {
   fetchQuestions,
   fetchTests,
   handBack,
-  reviewExpert,
+  reviewDelivery,
+  startRerun,
+  voidDelivery,
   startTest,
   stopExpert,
   testAction,
@@ -35,6 +38,7 @@ import {
   REQUEST,
   TEST,
   acceptanceItem,
+  delivery,
   deliveryItem,
   detail,
   draft,
@@ -48,7 +52,6 @@ vi.mock('@/lib/knowbots/client', () => ({
   answerQuestion: vi.fn(),
   decideLight: vi.fn(),
   draftAction: vi.fn(),
-  expertAction: vi.fn(),
   fetchAcceptance: vi.fn(),
   fetchDelivery: vi.fn(),
   fetchDetail: vi.fn(),
@@ -60,7 +63,12 @@ vi.mock('@/lib/knowbots/client', () => ({
   handBack: vi.fn(),
   questionTake: vi.fn(),
   questionToUser: vi.fn(),
-  reviewExpert: vi.fn(),
+  reviewDelivery: vi.fn(),
+  startRerun: vi.fn(),
+  retryDelivery: vi.fn(),
+  returnExpert: vi.fn(),
+  fetchCategories: vi.fn(),
+  voidDelivery: vi.fn(),
   startTest: vi.fn(),
   stopExpert: vi.fn(),
   testAction: vi.fn(),
@@ -412,7 +420,8 @@ describe('测试', () => {
 })
 
 describe('交付', () => {
-  it('交回、用户同意后运营审核（申请公开）', async () => {
+  it('交回；作者提交的公开交付：先发起重跑，重跑过了选类目再通过', async () => {
+    vi.mocked(fetchCategories).mockResolvedValue(['finance.securities_advisory', 'tools.lookup'])
     vi.mocked(fetchDelivery).mockResolvedValue([
       deliveryItem(),
       deliveryItem({
@@ -420,32 +429,110 @@ describe('交付', () => {
         version: 3,
         category: 'to_review',
         stage: 'to_review',
-        returned_at: '2026-10-24T10:00:00Z',
+        needs_return: false,
+        test_mode: 'self',
         user_accepted: true,
         user_decided_by: 'user-123',
         user_decided_at: '2026-10-24T11:00:00Z',
+        deliveries: [delivery()],
       }),
     ])
     vi.mocked(fetchDetail).mockResolvedValue(detail({ tests: [testRecord({ status: 'passed' })] }))
-    vi.mocked(expertAction).mockResolvedValue('awaiting_user')
-    vi.mocked(reviewExpert).mockResolvedValue({
-      contract_version: 1,
-      expert_id: EXPERT,
-      stage: 'listed',
-    })
+    vi.mocked(returnExpert).mockResolvedValue('awaiting_user')
     renderWith(<DeliveryView csrfToken={CSRF} />)
     fireEvent.click(await screen.findByRole('button', { name: k.delivery.return }))
-    await waitFor(() => expect(expertAction).toHaveBeenCalledWith(EXPERT, 'return', CSRF))
-    fireEvent.click(screen.getByRole('button', { name: /待运营审核 · 1/ }))
-    fireEvent.click(await screen.findByRole('button', { name: k.delivery.approvePublic }))
+    await waitFor(() => expect(returnExpert).toHaveBeenCalledWith(EXPERT, CSRF))
+    fireEvent.click(screen.getByRole('button', { name: /待审核 · 1/ }))
+    // 重跑没过不能通过；公开要选类目
+    expect(await screen.findByRole('button', { name: k.delivery.approve })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: k.delivery.startRerun }))
     await waitFor(() =>
-      expect(reviewExpert).toHaveBeenCalledWith(
-        '8b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
-        { approved: true, listing: 'public', reason: '' },
+      expect(startRerun).toHaveBeenCalledWith('7a8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f11', CSRF),
+    )
+    expect(screen.getByRole('button', { name: k.delivery.reject })).toBeDisabled()
+  })
+
+  it('重跑通过了：选了类目才能通过', async () => {
+    vi.mocked(fetchCategories).mockResolvedValue(['tools.lookup'])
+    vi.mocked(fetchDelivery).mockResolvedValue([
+      deliveryItem({
+        category: 'to_review',
+        stage: 'to_review',
+        needs_return: false,
+        deliveries: [
+          delivery({
+            rerun: {
+              test_id: TEST,
+              number: 6,
+              status: 'passed',
+              report: null,
+            },
+          }),
+        ],
+      }),
+    ])
+    vi.mocked(reviewDelivery).mockResolvedValue({ contract_version: 1, ...delivery() })
+    renderWith(<DeliveryView csrfToken={CSRF} category="to_review" />)
+    const approve = await screen.findByRole('button', { name: k.delivery.approve })
+    expect(approve).toBeDisabled()
+    await screen.findByRole('option', { name: k.catalog.tools.lookup })
+    fireEvent.change(screen.getByLabelText(k.delivery.category), {
+      target: { value: 'tools.lookup' },
+    })
+    fireEvent.click(approve)
+    await waitFor(() =>
+      expect(reviewDelivery).toHaveBeenCalledWith(
+        '7a8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f11',
+        { approved: true, reason: '', category: 'tools.lookup' },
         CSRF,
       ),
     )
-    expect(screen.getByRole('button', { name: k.delivery.reject })).toBeDisabled()
+  })
+
+  it('重跑没通过的不能再发起；审过却交不成的可以作废', async () => {
+    vi.mocked(fetchCategories).mockResolvedValue([])
+    vi.mocked(fetchDelivery).mockResolvedValue([
+      deliveryItem({
+        category: 'to_review',
+        stage: 'to_review',
+        needs_return: false,
+        deliveries: [
+          delivery({ rerun: { test_id: TEST, number: 6, status: 'failed', report: null } }),
+        ],
+      }),
+      deliveryItem({
+        expert_id: '8b8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f10',
+        version: 3,
+        category: 'to_review',
+        stage: 'to_deliver',
+        needs_return: false,
+        deliveries: [
+          delivery({
+            delivery_id: '6a8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f12',
+            status: 'approved',
+            delivery_error: 'delivery failed: binding_not_shareable',
+          }),
+        ],
+      }),
+    ])
+    vi.mocked(voidDelivery).mockResolvedValue({ contract_version: 1, ...delivery() })
+    renderWith(<DeliveryView csrfToken={CSRF} category="to_review" />)
+    expect(await screen.findByRole('button', { name: k.delivery.reject })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: k.delivery.startRerun })).toBeNull()
+    fireEvent.click(screen.getByText(/专家第 3 版/))
+    const voidIt = await screen.findByRole('button', { name: k.delivery.void })
+    expect(voidIt).toBeDisabled()
+    fireEvent.change(screen.getByLabelText(k.delivery.reason), {
+      target: { value: '作者改低了许可' },
+    })
+    fireEvent.click(voidIt)
+    await waitFor(() =>
+      expect(voidDelivery).toHaveBeenCalledWith(
+        '6a8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f12',
+        '作者改低了许可',
+        CSRF,
+      ),
+    )
   })
 
   it('全部专家里有试行期上架的：两道门之前交付；停用要写理由', async () => {

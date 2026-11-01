@@ -3,6 +3,7 @@ import { render } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 
 import type {
+  Delivery,
   FormalItem,
   DeliveryItem,
   Detail,
@@ -95,6 +96,7 @@ export function testRecord(overrides: Partial<Test> = {}): Test {
     run_status: 'running',
     run_running_since: null,
     run_blocked: null,
+    mode: 'platform',
     ...overrides,
   }
 }
@@ -129,6 +131,38 @@ export function expert(overrides: Partial<Expert> = {}): Expert {
     stopped_by: null,
     digest: null,
     delivery_error: null,
+    needs_return: true,
+    test_mode: 'platform',
+    deliveries: [],
+    ...overrides,
+  }
+}
+
+export function delivery(overrides: Partial<Delivery> = {}): Delivery {
+  return {
+    delivery_id: '7a8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f11',
+    listing: 'public',
+    conversion: false,
+    test_mode: 'self',
+    needs_rerun: true,
+    budget_limit: '5.00',
+    status: 'reviewing',
+    submitted_at: '2026-10-24T12:00:00Z',
+    submitted_by: 'user-123',
+    auto_check: { passed: true, findings: [], checked_at: '2026-10-24T12:00:00Z' },
+    binding_problem: null,
+    bindings: [],
+    binding_check: null,
+    rerun: null,
+    decided_at: null,
+    decided_by: null,
+    reason: null,
+    category: null,
+    delivered_at: null,
+    delivery_error: null,
+    listing_status: null,
+    basis: 'platform:knowlab:review:7a8a6c3e-1f2d-4c5b-9a7e-6d5c4b3a2f11',
+    consent_ended_at: null,
     ...overrides,
   }
 }

@@ -40,6 +40,18 @@ export const KNOWN_ERRORS = [
   'author_has_no_computer',
   'test_computer_unavailable',
   'model_key_missing',
+  'rerun_not_passed',
+  'rerun_exists',
+  'category_required',
+  'binding_not_shareable',
+  'binding_deleted',
+  'binding_disabled',
+  'binding_gone',
+  'binding_frozen_self_only',
+  'delivery_state',
+  'rerun_attempts_used',
+  'rerun_budget_used',
+  'delivered_in_knowmart',
 ] as const
 
 /** 动作的结果：成了刷新四栏共用的数据，没成说为什么（没有 knowlab:release 的要说清楚）。 */

@@ -88,7 +88,19 @@
     "errorCodes": {
       "author_has_no_computer": "The author has no computer to test on yet: platform tests run on the computer and folder of the author's last own test. Ask the author to connect a computer in knowbench and run one own test in knowlab, then start again.",
       "test_computer_unavailable": "The author's computer or folder cannot be used now (removed, or the folder is no longer allowed): ask the author to reconnect it in knowbench, then start again.",
-      "model_key_missing": "The author has no model key in knowbench yet: platform tests and platform AI rounds run on the author's account with the author's key. Ask the author to add one in knowbench, then start again."
+      "model_key_missing": "The author has no model key in knowbench yet: platform tests and platform AI rounds run on the author's account with the author's key. Ask the author to add one in knowbench, then start again.",
+      "rerun_not_passed": "A public, self-tested version can pass only after the platform rerun passed.",
+      "rerun_exists": "The rerun is running or has passed.",
+      "category_required": "Choose a category for a public expert.",
+      "binding_not_shareable": "Some bound data is for the author's own use only, so it cannot be public.",
+      "binding_deleted": "Some bound data was deleted.",
+      "binding_disabled": "Some bound data was disabled.",
+      "binding_gone": "Some bound data is no longer available to the author.",
+      "delivery_state": "This delivery has already ended; please refresh.",
+      "binding_frozen_self_only": "Some data frozen with this version is for the author's use only and cannot change: a new version is needed to go public.",
+      "rerun_attempts_used": "No reruns left for this delivery (at most 3 more after platform errors): reject it, or ask the author to withdraw and submit again.",
+      "rerun_budget_used": "The author's rerun cost limit is used up (all reruns together): reject it, or ask the author to withdraw and submit with a higher limit.",
+      "delivered_in_knowmart": "knowmart already took this version, so it cannot be voided: retry the delivery to record it."
     },
     "category": "Categories",
     "output": "Output",
@@ -115,7 +127,7 @@
       "waiting": "Waiting for the user",
       "finished": "Finished",
       "to_return": "To return",
-      "awaiting_user": "Waiting for the user",
+      "awaiting_user": "Waiting for the author to submit",
       "to_review": "To review",
       "listed": "Listed",
       "not_listed": "Not listed",
@@ -295,7 +307,7 @@
     "deliver": "Retry delivery",
     "expertStage": {
       "to_return": "To return",
-      "awaiting_user": "Waiting for the user",
+      "awaiting_user": "Waiting for the author to submit",
       "declined": "Declined by the user",
       "to_review": "To review",
       "rejected": "Review rejected",
@@ -305,20 +317,47 @@
     },
     "delivery": {
       "next": "This version",
-      "returnHint": "Return: the user gets an item in Review on the web, reads the write-ups and results, and decides whether to take it.",
+      "returnHint": "Return: for a version the platform incubated and tested, the author gets an item in To do on the web, reads the write-ups and results, then submits it for delivery (or declines).",
       "return": "Return to the user",
-      "awaitingUser": "Returned; waiting for the user to decide.",
-      "reviewHint": "Operator review: the write-up carries no target prices or ratings (C-L5), and the acceptance matches the test results. Public needs a qualified publisher (reviewed in knowmart); otherwise it stays private.",
+      "awaitingUser": "Waiting for the author to submit it for delivery (own use or public, letting reviewers see it).",
+      "reviewHint": "Review: the write-ups carry no target prices, ratings, stock picks or return promises (C-L5) and the results match the acceptance; for a self-tested version you cannot see the write-ups, so read the automatic checks and the rerun result. Choose a category for a public expert; publisher qualifications are checked in knowmart, and an unqualified one stays for own use.",
       "reason": "Reason (required to reject)",
-      "approveSelf": "Approve: private use",
-      "approvePublic": "Approve: ask to go public",
       "reject": "Reject",
-      "backfillReview": "Listed in the trial period: review it once. Approving only records the review (no new delivery); rejecting stops this version.",
-      "backfillRejectedNotStopped": "The review rejected it but stopping did not work; retry stopping below.",
       "stopHint": "Stop: the knowmart version stops too; nobody can ask it any more, runs already going finish.",
       "stopReason": "Reason for stopping",
       "stop": "Stop this version",
-      "noTestRecord": "No record of this test."
+      "noTestRecord": "No record of this test.",
+      "approve": "Approve",
+      "conversion": "Own use to public",
+      "listing": {
+        "self": "Author chose: own use",
+        "public": "Author chose: public"
+      },
+      "testMode": {
+        "self": "self-tested",
+        "platform": "platform-tested"
+      },
+      "autoPassed": "Automatic checks: all passed.",
+      "autoFailed": "Automatic checks did not pass: {items}",
+      "finding": {
+        "test_not_passed": "the test did not fully pass",
+        "not_accepted": "the idea version was not accepted",
+        "cases_mismatch": "the tested cases do not match the idea",
+        "outputs_missing": "no write-up for case {case}",
+        "flagged_word": "the write-up of case {case} contains “{word}”"
+      },
+      "noBindings": "The author bound no data.",
+      "bindingProblem": "The licence pre-check of the bound data failed: {problem}",
+      "bindingsOk": "{count} pieces of bound data passed the licence pre-check (frozen with this version).",
+      "rerunNeeded": "Public and self-tested: start the platform rerun first (under the author's account, on the author's computer, cost limit CNY {budget}).",
+      "rerunLine": "Platform rerun no. {number}: {status}",
+      "startRerun": "Start rerun",
+      "category": "Category",
+      "categoryNeeded": "Category (required for public)",
+      "categoryNone": "None",
+      "voidHint": "Keeps failing (for example the author lowered a licence after the review and knowmart keeps refusing): void it with a reason; the author's permission for reviewers is revoked and this version goes back to waiting for the author.",
+      "void": "Void this delivery",
+      "held": "This version is on hold in knowmart (bound data no longer valid; others cannot ask it): {reason}"
     },
     "record": {
       "returned": "Returned",
@@ -397,7 +436,7 @@
       },
       "delivery": {
         "title": "Delivery",
-        "intro": "Return to the user → the user takes it → operator review → deliver to knowmart. Listed versions can be stopped; All experts lists every version of every name."
+        "intro": "(Return first if the platform incubated and tested it) → the author submits it → review (own use reaches here only if automatic checks fail; public gets a full review, self-tested ones are rerun first) → deliver to knowmart. Listed versions can be stopped; All experts lists every version of every name."
       },
       "name": {
         "title": "Name",
@@ -490,7 +529,22 @@
         "pending": "To take"
       }
     },
-    "questionIdea": "One-line question: {question}"
+    "questionIdea": "One-line question: {question}",
+    "catalog": {
+      "finance": {
+        "securities_advisory": "Finance / Securities and futures advisory",
+        "public_fund": "Finance / Public funds",
+        "private_fund": "Finance / Private funds"
+      },
+      "tools": {
+        "office": "Tools / Office",
+        "lookup": "Tools / Lookup",
+        "calculator": "Tools / Calculator"
+      },
+      "business": {
+        "management": "Business services / Management"
+      }
+    }
   },
   "workdraft": {
     "title": "Workdraft",

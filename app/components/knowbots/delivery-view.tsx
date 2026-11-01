@@ -4,13 +4,17 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import type { DeliveryItem, Expert } from '@/contracts/knowbots'
+import type { Delivery, DeliveryItem, Expert } from '@/contracts/knowbots'
 import {
-  expertAction,
+  fetchCategories,
   fetchDelivery,
   fetchDetail,
-  reviewExpert,
+  retryDelivery,
+  returnExpert,
+  reviewDelivery,
+  startRerun,
   stopExpert,
+  voidDelivery,
 } from '@/lib/knowbots/client'
 
 import { TestOutputs } from './outputs'
@@ -29,9 +33,11 @@ import {
 } from './shared'
 import { SidePanel } from './side-panel'
 
-// 交付（SDD 0037 第五节）：交回（通知用户，用户同意门开始）→ 用户要了 → 运营审核（自用，或
-// 发布主体有资质的公开）→ 交 knowmart（失败可重试）。上架了的可以停用。「全部专家」列出每个
-// 名称的每一版：出自哪次测试、两道门的结论、上架没有、停用没有。
+// 交付（SDD 0037 第五节、0046 第五节）：平台孵化、平台测的先交回作者；作者「提交交付」（定自用或
+// 公开、授权审核员看这次交付）就过了用户同意门。自用的能自动查的已经自动查过，查不过才到这里；
+// 公开的完整审核，自助测的要先由平台发起重跑（在作者的账号下、作者的电脑上），审核员看重跑的
+// 结论、不看原始数据。过的时候选类目（公开的必须选），交 knowmart（失败可重试）；自用转公开也
+// 在这里审。上架了的可以停用。「全部专家」列出每个名称的每一版。
 
 const FILTERS = ['to_return', 'awaiting_user', 'to_review', 'listed', 'not_listed', 'all'] as const
 type Filter = (typeof FILTERS)[number]
@@ -126,7 +132,8 @@ function ExpertProcess({ item, ...props }: CardProps & { item: DeliveryItem }) {
           {test ? (
             <div className="space-y-4">
               <Report test={test} />
-              <TestOutputs test={test} {...props} />
+              {/* 自助测的：平台的人看不到成稿与交回物（SDD 0046 第三节） */}
+              {test.mode === 'platform' ? <TestOutputs test={test} {...props} /> : null}
             </div>
           ) : (
             <p className="text-muted-foreground">{t('delivery.noTestRecord')}</p>
@@ -144,16 +151,9 @@ function ExpertProcess({ item, ...props }: CardProps & { item: DeliveryItem }) {
 /** 现在这一版要做的那一件事。 */
 function Actions({ expert, csrfToken, onDone, onError }: CardProps & { expert: Expert }) {
   const t = useTranslations('knowbots')
-  const [reason, setReason] = useState('')
   const [stopReason, setStopReason] = useState('')
-  const act = useMutation({
-    mutationFn: (action: 'return' | 'deliver') => expertAction(expert.expert_id, action, csrfToken),
-    onSuccess: () => onDone(),
-    onError,
-  })
-  const review = useMutation({
-    mutationFn: (body: { approved: boolean; listing: 'self' | 'public' | null }) =>
-      reviewExpert(expert.expert_id, { ...body, reason: reason.trim() }, csrfToken),
+  const back = useMutation({
+    mutationFn: () => returnExpert(expert.expert_id, csrfToken),
     onSuccess: () => onDone(),
     onError,
   })
@@ -162,10 +162,230 @@ function Actions({ expert, csrfToken, onDone, onError }: CardProps & { expert: E
     onSuccess: () => onDone(),
     onError,
   })
-  const busy = act.isPending || review.isPending || stop.isPending
-  const reviewForm = (
-    <div className="space-y-2">
+  const busy = back.isPending || stop.isPending
+  const open = expert.deliveries.find(
+    (d) => d.status === 'reviewing' || (d.status === 'approved' && !d.delivered_at),
+  )
+  if (open) {
+    return (
+      <OpenDelivery
+        key={open.delivery_id}
+        delivery={open}
+        csrfToken={csrfToken}
+        onDone={onDone}
+        onError={onError}
+      />
+    )
+  }
+  switch (expert.stage) {
+    case 'to_return':
+      return (
+        <div className="space-y-2">
+          <p className="text-muted-foreground">{t('delivery.returnHint')}</p>
+          <button
+            type="button"
+            className="primary-button"
+            disabled={busy}
+            onClick={() => back.mutate()}
+          >
+            {t('delivery.return')}
+          </button>
+        </div>
+      )
+    case 'awaiting_user':
+      return <p className="text-muted-foreground">{t('delivery.awaitingUser')}</p>
+    case 'listed':
+      return (
+        <div className="space-y-2">
+          {expert.market_status === 'held' ? (
+            <p className="text-destructive" role="status">
+              {t('delivery.held', { reason: expert.held_reason ?? '' })}
+            </p>
+          ) : null}
+          <p className="text-muted-foreground">{t('delivery.stopHint')}</p>
+          <label className="block">
+            {t('delivery.stopReason')}
+            <input
+              className={FIELD}
+              maxLength={500}
+              value={stopReason}
+              onChange={(e) => setStopReason(e.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={busy || !stopReason.trim()}
+            onClick={() => stop.mutate()}
+          >
+            {t('delivery.stop')}
+          </button>
+        </div>
+      )
+    default:
+      return <p className="text-muted-foreground">{t(`expertStage.${expert.stage}`)}</p>
+  }
+}
+
+/** 一次没走完的交付：看作者定的自用或公开、自动查与许可预查、重跑结论，审；审过没交成的重试。 */
+function OpenDelivery({
+  delivery,
+  csrfToken,
+  onDone,
+  onError,
+}: CardProps & { delivery: Delivery }) {
+  const t = useTranslations('knowbots')
+  const tt = useTranslations('knowbots.testStatus')
+  const [reason, setReason] = useState('')
+  const [category, setCategory] = useState('')
+  const categories = useQuery({ queryKey: [...KEY, 'categories'], queryFn: fetchCategories })
+  const review = useMutation({
+    mutationFn: (approved: boolean) =>
+      reviewDelivery(
+        delivery.delivery_id,
+        { approved, reason: reason.trim(), category: approved && category ? category : null },
+        csrfToken,
+      ),
+    onSuccess: () => onDone(),
+    onError,
+  })
+  const rerun = useMutation({
+    mutationFn: () => startRerun(delivery.delivery_id, csrfToken),
+    onSuccess: () => onDone(),
+    onError,
+  })
+  const retry = useMutation({
+    mutationFn: () => retryDelivery(delivery.delivery_id, csrfToken),
+    onSuccess: () => onDone(),
+    onError,
+  })
+  const annul = useMutation({
+    mutationFn: () => voidDelivery(delivery.delivery_id, reason.trim(), csrfToken),
+    onSuccess: () => onDone(),
+    onError,
+  })
+  const busy = review.isPending || rerun.isPending || retry.isPending || annul.isPending
+  const findings = delivery.auto_check?.findings ?? []
+  const rerunDone = delivery.rerun?.status === 'passed'
+  // 没跑过、或上一次平台出错的才能发起；没通过的只能审成不过（重跑花作者的钱）
+  const canRerun = !delivery.rerun || delivery.rerun.status === 'platform_error'
+  const canApprove =
+    (!delivery.needs_rerun || rerunDone) && (delivery.listing === 'self' || category !== '')
+  if (delivery.status === 'approved') {
+    return (
+      <div className="space-y-2">
+        {delivery.delivery_error ? (
+          <p className="text-destructive">{delivery.delivery_error}</p>
+        ) : null}
+        <button
+          type="button"
+          className="primary-button"
+          disabled={busy}
+          onClick={() => retry.mutate()}
+        >
+          {t('deliver')}
+        </button>
+        {/* 一直交不成（如审后作者改低了许可，knowmart 一直拒）：作废，不再挡这一版 */}
+        <p className="text-muted-foreground">{t('delivery.voidHint')}</p>
+        <label className="block">
+          {t('delivery.reason')}
+          <textarea
+            className={FIELD}
+            rows={2}
+            maxLength={1000}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+        </label>
+        <button
+          type="button"
+          className="secondary-button"
+          disabled={busy || !reason.trim()}
+          onClick={() => annul.mutate()}
+        >
+          {t('delivery.void')}
+        </button>
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-3" data-testid="open-delivery">
+      <p>
+        {t(delivery.conversion ? 'delivery.conversion' : `delivery.listing.${delivery.listing}`)}
+        {' · '}
+        {t(`delivery.testMode.${delivery.test_mode}`)}
+      </p>
+      {delivery.auto_check ? (
+        <p>
+          {delivery.auto_check.passed
+            ? t('delivery.autoPassed')
+            : t('delivery.autoFailed', {
+                items: findings
+                  .map((f) =>
+                    t(`delivery.finding.${f.kind}`, {
+                      word: f.word ?? '',
+                      case: f.case_id ?? '',
+                    }),
+                  )
+                  .join('；'),
+              })}
+        </p>
+      ) : null}
+      <p className="text-muted-foreground">
+        {delivery.bindings.length === 0
+          ? t('delivery.noBindings')
+          : delivery.binding_problem
+            ? t('delivery.bindingProblem', { problem: delivery.binding_problem })
+            : t('delivery.bindingsOk', { count: delivery.bindings.length })}
+      </p>
+      {delivery.needs_rerun ? (
+        <div className="space-y-2">
+          <p>
+            {delivery.rerun
+              ? t('delivery.rerunLine', {
+                  number: delivery.rerun.number,
+                  status: tt(delivery.rerun.status),
+                })
+              : t('delivery.rerunNeeded', { budget: delivery.budget_limit ?? '—' })}
+          </p>
+          {delivery.rerun?.report ? (
+            <ul className="text-muted-foreground text-xs">
+              {delivery.rerun.report.cases.map((c) => (
+                <li key={c.case_id}>
+                  {c.case_id}：{c.status}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {canRerun ? (
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={busy}
+              onClick={() => rerun.mutate()}
+            >
+              {t('delivery.startRerun')}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
       <p className="text-muted-foreground">{t('delivery.reviewHint')}</p>
+      <label className="block">
+        {t(delivery.listing === 'public' ? 'delivery.categoryNeeded' : 'delivery.category')}
+        <select
+          className={FIELD}
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          aria-label={t('delivery.category')}
+        >
+          <option value="">{t('delivery.categoryNone')}</option>
+          {(categories.data ?? []).map((code) => (
+            <option key={code} value={code}>
+              {t.has(`catalog.${code}`) ? t(`catalog.${code}`) : code}
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="block">
         {t('delivery.reason')}
         <textarea
@@ -180,106 +400,22 @@ function Actions({ expert, csrfToken, onDone, onError }: CardProps & { expert: E
         <button
           type="button"
           className="primary-button"
-          disabled={busy}
-          onClick={() => review.mutate({ approved: true, listing: 'self' })}
+          disabled={busy || !canApprove}
+          onClick={() => review.mutate(true)}
         >
-          {t('delivery.approveSelf')}
-        </button>
-        <button
-          type="button"
-          className="secondary-button"
-          disabled={busy}
-          onClick={() => review.mutate({ approved: true, listing: 'public' })}
-        >
-          {t('delivery.approvePublic')}
+          {t('delivery.approve')}
         </button>
         <button
           type="button"
           className="secondary-button"
           disabled={busy || !reason.trim()}
-          onClick={() => review.mutate({ approved: false, listing: null })}
+          onClick={() => review.mutate(false)}
         >
           {t('delivery.reject')}
         </button>
       </div>
     </div>
   )
-  switch (expert.stage) {
-    case 'to_return':
-      return (
-        <div className="space-y-2">
-          <p className="text-muted-foreground">{t('delivery.returnHint')}</p>
-          <button
-            type="button"
-            className="primary-button"
-            disabled={busy}
-            onClick={() => act.mutate('return')}
-          >
-            {t('delivery.return')}
-          </button>
-        </div>
-      )
-    case 'awaiting_user':
-      return <p className="text-muted-foreground">{t('delivery.awaitingUser')}</p>
-    case 'to_review':
-      return reviewForm
-    case 'to_deliver':
-      return (
-        <div className="space-y-2">
-          {expert.delivery_error ? (
-            <p className="text-destructive">{expert.delivery_error}</p>
-          ) : null}
-          <button
-            type="button"
-            className="primary-button"
-            disabled={busy}
-            onClick={() => act.mutate('deliver')}
-          >
-            {t('deliver')}
-          </button>
-        </div>
-      )
-    case 'listed':
-      return (
-        <div className="space-y-4">
-          {/* 试行期上架、没审过的：补一次运营审核记录（不再交付） */}
-          {expert.trial && !expert.reviewed_at ? (
-            <div className="space-y-2">
-              <p>{t('delivery.backfillReview')}</p>
-              {reviewForm}
-            </div>
-          ) : null}
-          {/* 补审判了不通过、停用没成：照实说，下面的停用可以重试（Fable 评审 D02） */}
-          {expert.trial && expert.review_approved === false ? (
-            <p role="alert" className="text-destructive">
-              {t('delivery.backfillRejectedNotStopped')}
-            </p>
-          ) : null}
-          <div className="space-y-2">
-            <p className="text-muted-foreground">{t('delivery.stopHint')}</p>
-            <label className="block">
-              {t('delivery.stopReason')}
-              <input
-                className={FIELD}
-                maxLength={500}
-                value={stopReason}
-                onChange={(e) => setStopReason(e.target.value)}
-              />
-            </label>
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={busy || !stopReason.trim()}
-              onClick={() => stop.mutate()}
-            >
-              {t('delivery.stop')}
-            </button>
-          </div>
-        </div>
-      )
-    default:
-      return <p className="text-muted-foreground">{t(`expertStage.${expert.stage}`)}</p>
-  }
 }
 
 /** 输出：交回记录、用户同意门、运营审核、上架、停用，各自谁、何时。 */

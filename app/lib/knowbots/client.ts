@@ -4,8 +4,10 @@ import type { z } from 'zod'
 
 import {
   acceptanceBoardSchema,
+  categoriesSchema,
   countsSchema,
   deliveryBoardSchema,
+  deliveryResultSchema,
   detailSchema,
   expertMovedSchema,
   grantResultSchema,
@@ -13,6 +15,7 @@ import {
   manifestSchema,
   outputsSchema,
   questionsSchema,
+  rerunStartedSchema,
   sentSchema,
   startedSchema,
   testsBoardSchema,
@@ -153,28 +156,61 @@ export async function fetchOutputs(testId: string): Promise<Outputs> {
   return parse(outputsSchema, await requestJson(`${BASE}/knowbot-tests/${id(testId)}/outputs`))
 }
 
-// ---------- 交付：交回、运营审核、交 knowmart、停用 ----------
-export async function expertAction(
-  expertId: string,
-  action: 'return' | 'deliver',
-  csrfToken: string,
-): Promise<ExpertStage> {
-  const answer = await requestJson(`${BASE}/knowbot-experts/${id(expertId)}/${action}`, {
+// ---------- 交付：交回、审核作者提交的交付（SDD 0046 第五节）、重跑、交 knowmart、停用 ----------
+export async function returnExpert(expertId: string, csrfToken: string): Promise<ExpertStage> {
+  const answer = await requestJson(`${BASE}/knowbot-experts/${id(expertId)}/return`, {
     method: 'POST',
     csrfToken,
   })
   return parse(expertMovedSchema, answer).stage
 }
 
-export type ReviewInput = { approved: boolean; listing: 'self' | 'public' | null; reason: string }
+// 交付时可选的类目（契约 knowbot-delivery/v1；名称照 knowmart 的叫法写在 messages）
+export async function fetchCategories(): Promise<string[]> {
+  return parse(categoriesSchema, await requestJson(`${BASE}/knowbot-categories`)).categories
+}
 
-export async function reviewExpert(expertId: string, body: ReviewInput, csrfToken: string) {
-  const answer = await requestJson(`${BASE}/knowbot-experts/${id(expertId)}/review`, {
+export type DeliveryReviewInput = { approved: boolean; reason: string; category: string | null }
+
+export async function reviewDelivery(
+  deliveryId: string,
+  body: DeliveryReviewInput,
+  csrfToken: string,
+) {
+  const answer = await requestJson(`${BASE}/knowbot-deliveries/${id(deliveryId)}/review`, {
     method: 'POST',
     csrfToken,
     body,
   })
-  return parse(expertMovedSchema, answer)
+  return parse(deliveryResultSchema, answer)
+}
+
+// 平台发起重跑（公开、自助测的）：在作者的账号下、作者的电脑上、用作者的 key 跑（decisions ⑯）
+export async function startRerun(deliveryId: string, csrfToken: string) {
+  const answer = await requestJson(`${BASE}/knowbot-deliveries/${id(deliveryId)}/rerun`, {
+    method: 'POST',
+    csrfToken,
+  })
+  return parse(rerunStartedSchema, answer)
+}
+
+// 作废审过了却一直交不成的那一次（写理由）：撤依据，这一版回到「等作者提交」
+export async function voidDelivery(deliveryId: string, reason: string, csrfToken: string) {
+  const answer = await requestJson(`${BASE}/knowbot-deliveries/${id(deliveryId)}/void`, {
+    method: 'POST',
+    csrfToken,
+    body: { reason },
+  })
+  return parse(deliveryResultSchema, answer)
+}
+
+// 重试交 knowmart：审过了、上次没交成的
+export async function retryDelivery(deliveryId: string, csrfToken: string) {
+  const answer = await requestJson(`${BASE}/knowbot-deliveries/${id(deliveryId)}/deliver`, {
+    method: 'POST',
+    csrfToken,
+  })
+  return parse(deliveryResultSchema, answer)
 }
 
 export async function stopExpert(expertId: string, reason: string, csrfToken: string) {

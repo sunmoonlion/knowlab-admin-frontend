@@ -176,6 +176,80 @@ const testSchema = z.object({
   run_running_since: when,
   // 已受理还没开跑时在等什么（账 141）
   run_blocked: z.enum(['computer_offline', 'folder_not_ready']).nullable(),
+  // 自助、平台，或公开交付时平台发起的重跑（SDD 0046 第三、五节）
+  mode: z.enum(['platform', 'self', 'rerun']).default('platform'),
+})
+
+// 交付（SDD 0046 第五节）：作者「提交交付」的一次，审核员看到的样子
+export const DELIVERY_STATUSES = ['reviewing', 'approved', 'rejected', 'withdrawn'] as const
+const findingSchema = z.object({
+  kind: z.enum([
+    'test_not_passed',
+    'not_accepted',
+    'cases_mismatch',
+    'outputs_missing',
+    'flagged_word',
+  ]),
+  case_id: z.string().optional(),
+  rule: z.string().optional(),
+  word: z.string().optional(),
+})
+const deliverySchema = z.object({
+  delivery_id: z.string().uuid(),
+  listing: z.enum(['self', 'public']),
+  conversion: z.boolean(),
+  test_mode: z.enum(['self', 'platform']),
+  needs_rerun: z.boolean(),
+  budget_limit: z.string().nullable(),
+  status: z.enum(DELIVERY_STATUSES),
+  submitted_at: when,
+  submitted_by: z.string(),
+  auto_check: z
+    .object({ passed: z.boolean(), findings: z.array(findingSchema), checked_at: z.string() })
+    .nullable(),
+  binding_problem: z.string().nullable(),
+  bindings: z.array(
+    z.object({
+      material_id: z.string(),
+      version_no: z.number().int(),
+      license: z.string().nullable().optional(),
+    }),
+  ),
+  binding_check: z
+    .object({
+      problem: z.string().nullable(),
+      items: z.array(
+        z.object({
+          material_id: z.string(),
+          version_no: z.number().int(),
+          state: z.string().nullable(),
+          license: z.string().nullable(),
+          shareable: z.boolean(),
+        }),
+      ),
+      checked_at: z.string(),
+    })
+    .nullable(),
+  rerun: z
+    .object({
+      test_id: z.string().uuid(),
+      number: z.number().int(),
+      status: z.enum(TEST_STATUSES),
+      report: reportSchema.nullable(),
+    })
+    .nullable(),
+  decided_at: when,
+  decided_by: z.string().nullable(),
+  reason: z.string().nullable(),
+  category: z.string().nullable(),
+  delivered_at: when,
+  delivery_error: z.string().nullable(),
+  listing_status: z.string().nullable(),
+  withdrawn_at: when.optional(),
+  withdrawn_by: z.string().nullable().optional(),
+  withdraw_reason: z.string().nullable().optional(),
+  basis: z.string(),
+  consent_ended_at: when,
 })
 
 const expertSchema = z.object({
@@ -208,6 +282,24 @@ const expertSchema = z.object({
   stopped_by: z.string().nullable(),
   digest: z.string().nullable(),
   delivery_error: z.string().nullable(),
+  // 平台孵化、平台测的要平台先交回；测试通过的那一次的模式；交付过程（新的在前）
+  needs_return: z.boolean().default(true),
+  test_mode: z.enum(['platform', 'self', 'rerun']).nullable().default(null),
+  deliveries: z.array(deliverySchema).default([]),
+  // knowmart 那头这一版现在怎样：待处理（所绑数据失效）与原因（0043 第 4.3 节）
+  market_status: z.string().nullable().optional(),
+  held_reason: z.string().nullable().optional(),
+})
+
+export const categoriesSchema = z.object({
+  contract_version: z.literal(1),
+  categories: z.array(z.string()),
+})
+export const deliveryResultSchema = deliverySchema.extend({ contract_version: z.literal(1) })
+export const rerunStartedSchema = z.object({
+  contract_version: z.literal(1),
+  test_id: z.string().uuid(),
+  status: z.enum(TEST_STATUSES),
 })
 
 const summarySchema = z.object({
@@ -465,6 +557,7 @@ export type LightItem = z.infer<typeof lightItem>
 export type IncubationItem = z.infer<typeof incubationItem>
 export type TestItem = z.infer<typeof testItem>
 export type DeliveryItem = z.infer<typeof deliveryItem>
+export type Delivery = z.infer<typeof deliverySchema>
 export type Question = z.infer<typeof questionSchema>
 export type CaseResult = z.infer<typeof caseResultSchema>
 export type Amendment = z.infer<typeof amendmentSchema>
