@@ -180,6 +180,7 @@ type Expectation = {
   kind?: unknown
   value?: unknown
   tolerance?: unknown
+  row?: { where?: unknown; field?: unknown } | null
 }
 
 function caseShape(raw: Record<string, unknown>) {
@@ -220,6 +221,14 @@ export function Cases({ cases }: { cases: Record<string, unknown>[] }) {
                     <tr key={j} className="border-t">
                       <td className="py-1 pr-2 font-mono break-all">
                         {String(e.artifact ?? '')} / {String(e.path ?? '')}
+                        {e.row ? (
+                          <p>
+                            {t('expect.rowMatch', {
+                              where: JSON.stringify(e.row.where),
+                              field: String(e.row.field ?? ''),
+                            })}
+                          </p>
+                        ) : null}
                       </td>
                       <td className="py-1 pr-2">{String(e.kind ?? '')}</td>
                       <td className="py-1 pr-2 break-all">{String(e.value ?? '')}</td>

@@ -6,6 +6,7 @@ import { DeliveryView } from '@/components/knowbots/delivery-view'
 import { IncubationView } from '@/components/knowbots/incubation-view'
 import { NameView } from '@/components/knowbots/name-view'
 import { TestsView } from '@/components/knowbots/tests-view'
+import { Cases } from '@/components/knowbots/reference'
 import { ApiClientError } from '@/lib/api/client'
 import {
   accept,
@@ -73,6 +74,30 @@ vi.mock('@/lib/knowbots/client', () => ({
   stopExpert: vi.fn(),
   testAction: vi.fn(),
 }))
+
+it('审核用例显示实际选行条件与唯一性要求', () => {
+  renderWith(
+    <Cases
+      cases={[
+        {
+          case_id: 'c1',
+          input: { question: '合成表格' },
+          expectations: [
+            {
+              artifact: 'metrics',
+              path: 'annual',
+              kind: 'approx',
+              value: 100,
+              tolerance: 0.001,
+              row: { where: { year: '2024' }, field: 'revenue' },
+            },
+          ],
+        },
+      ]}
+    />,
+  )
+  expect(screen.getByText(/按.*2024.*唯一选行.*revenue/)).toBeInTheDocument()
+})
 vi.mock('@/i18n/navigation', async () => (await import('./knowbot-fixtures')).linkMock())
 
 const k = messages.knowbots

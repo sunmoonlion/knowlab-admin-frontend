@@ -194,7 +194,8 @@
       "where": "Output / item",
       "how": "Compared by",
       "value": "Should be",
-      "tolerance": "Tolerance"
+      "tolerance": "Tolerance",
+      "rowMatch": "Select exactly one row matching {where}, then check {field}. Missing or duplicate rows fail."
     },
     "noAnswered": "No questions answered during tests yet.",
     "answeredTitle": "Questions answered during tests (only the user's answers go into the next candidate's rule sources)",
@@ -381,7 +382,8 @@
       "public": "Public",
       "category_needed": "Kept private: the seller has not chosen a category in knowmart yet",
       "not_qualified": "Kept private: the seller's publisher or category license is not approved yet",
-      "taken_down": "Taken down by the platform"
+      "taken_down": "Taken down by the platform",
+      "shop_suspended": "Kept private: the seller's shop is suspended by the platform"
     },
     "name": {
       "timeline": "Record",
