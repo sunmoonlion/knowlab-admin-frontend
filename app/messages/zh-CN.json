@@ -194,7 +194,8 @@
       "where": "交回物 / 哪一项",
       "how": "怎么比",
       "value": "应当是",
-      "tolerance": "允许误差"
+      "tolerance": "允许误差",
+      "rowMatch": "按 {where} 唯一选行，核对 {field}；缺行或重复行不通过。"
     },
     "noAnswered": "测试中还没有答过的问题。",
     "answeredTitle": "测试中答过的问题（只有用户答的写进下一位准专家的规则出处）",
