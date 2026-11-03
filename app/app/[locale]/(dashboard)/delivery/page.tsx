@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
+import { ManualReleaseQueue } from '@/components/knowbots/manual-release'
 import { DeliveryView } from '@/components/knowbots/delivery-view'
 import { requireBrowserSession } from '@/lib/server/auth-session'
 
@@ -41,6 +42,7 @@ export default async function Page({
         <h1 className="text-2xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="text-muted-foreground mt-2">{t('intro')}</p>
       </div>
+      <ManualReleaseQueue csrfToken={session.csrf_token} />
       <DeliveryView csrfToken={session.csrf_token} picked={one(query.item)} category={category} />
     </div>
   )

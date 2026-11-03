@@ -119,6 +119,7 @@ function ExpertProcess({ item, ...props }: CardProps & { item: DeliveryItem }) {
           requestId={item.request_id}
           owner={item.owner_subject}
         />
+        {item.manual_release ? <p role="status">{t('manualRelease.notice')}</p> : null}
         <Card title={t('delivery.next')}>
           <Actions expert={item} {...props} />
         </Card>

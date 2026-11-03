@@ -151,6 +151,8 @@ export function eventLine(event: Event, t: Translate): string {
         number: v('number'),
         status: t(`testStatus.${v('status')}` as never),
       })
+    case 'expert_manual_release':
+      return t('event.manualRelease', { version: v('version') })
     case 'expert':
       return (
         t('event.expert', { number: v('test_number') || '—', version: v('version') }) +

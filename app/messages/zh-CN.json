@@ -336,7 +336,8 @@
       },
       "testMode": {
         "self": "自助测的",
-        "platform": "平台测的"
+        "platform": "平台测的",
+        "unrun": "人工特批 · 未复测"
       },
       "autoPassed": "自动查：都过了。",
       "autoFailed": "自动查没过：{items}",
@@ -345,7 +346,8 @@
         "not_accepted": "创意那一版没受理",
         "cases_mismatch": "测的用例和创意的用例对不上",
         "outputs_missing": "用例 {case} 没取到成稿",
-        "flagged_word": "用例 {case} 的成稿里有「{word}」"
+        "flagged_word": "用例 {case} 的成稿里有「{word}」",
+        "manual_unretested": "人工特批，本修订未复测。此前版本的测试结果仅供参考，不代表本版本通过。"
       },
       "noBindings": "作者没绑数据。",
       "bindingProblem": "所绑数据的许可预查没过：{problem}",
@@ -413,7 +415,8 @@
       "approved": "运营审核：第 {version} 版{listing}",
       "reviewRejected": "运营审核：第 {version} 版不通过",
       "listed": "上架：第 {version} 版交 knowmart",
-      "stopped": "停用：第 {version} 版"
+      "stopped": "停用：第 {version} 版",
+      "manualRelease": "人工特批成为专家第 {version} 版（本修订未复测）"
     },
     "amendments": {
       "title": "用户以前写的补充方法（SDD 0035，已取消）：留作历史，出处照旧可查。以后改方法就是改创意、出新版本。",
@@ -546,6 +549,35 @@
       "business": {
         "management": "商业服务 / 企业管理"
       }
+    },
+    "manualRelease": {
+      "title": "人工特批发布",
+      "notice": "人工特批，本修订未复测。此前版本的测试结果仅供参考，不代表本版本通过。",
+      "lead": "申请免去本修订的模型复测，仍须发布人员审查和正常交付审核。不启动模型，也不产生测试费用。",
+      "baseline": "参考哪次旧版测试",
+      "reason": "特批原因",
+      "change_summary": "本次修正内容",
+      "verification": "离线验证依据",
+      "limitations": "仍未验证的内容与限制",
+      "consent": "我确认本修订未复测，并授权发布人员查看这一份专家包及上述说明。",
+      "submit": "提交特批申请",
+      "pending": "待发布人员审核",
+      "approved": "特批已批准，接着提交交付",
+      "rejected": "特批未批准",
+      "failed": "未能完成操作，请重新读取后重试。",
+      "queue": "特批申请与记录",
+      "empty": "暂无特批申请",
+      "inspect": "查看修订包和依据",
+      "package": "本次申请的专家包",
+      "decision": "审核理由",
+      "agree": "批准特批",
+      "reject": "不批准",
+      "reviewAck": "我已核对本次修订包及依据，明确本修订未复测；批准后仍须完成正常交付。",
+      "history": "特批记录",
+      "draft": "准专家 {label}",
+      "test": "测试 {number} · 准专家 {label}",
+      "digest": "本次修订摘要",
+      "newVersion": "本修订已出专家版本；如需测试，请先出新的准专家。"
     }
   },
   "workdraft": {
